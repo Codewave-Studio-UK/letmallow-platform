@@ -1,6 +1,6 @@
 # LetMallow — future roadmap
 
-**Working draft v0.2 · Updated 06/11/2026 · Codewave Studio**
+**Working draft v0.3 · Updated 06/11/2026 · Codewave Studio**
 
 This document records the direction of LetMallow beyond the current alpha. It is a prioritised backlog, not a promise of delivery dates. Existing work, owner-requested features and proposed ideas are distinguished below. The requested AI enhancements and SystemBot#Colin are planned, not implemented by this documentation update.
 
@@ -35,6 +35,20 @@ The IDs below are stable roadmap references. “Now” and “Next” express pr
 | LM-R05 · After alpha evidence | Prepare an owner-reviewed stable release. | Practical security, account-isolation, accessibility and mobile checks; working reporting, moderation, deletion and recovery procedures; current privacy/consumer documentation; known limits and rollback recorded. Owner accepts the release before promotion to `main`. | Proposed release checklist; no release date agreed. |
 
 Genuine participant recruitment or contact requires explicit owner instructions. Synthetic records can verify software behaviour but cannot satisfy LM-R02's real-world outcome.
+
+## Owner-directed next alpha increments
+
+The following requirements were added by the owner on **06/11/2026**. The next alpha MVP version should apply the temporary brand kit and design system once supplied; minor changes, improvements and corrections should ideally follow in the next sprint. This is the current sprint preference alongside the existing alpha acceptance work. No sprint dates, duration or release number are assumed.
+
+| ID / intended timing | Requirement and current state | Dependencies and completion evidence |
+| --- | --- | --- |
+| LM-R13 · Next alpha MVP / brand kit sprint | The owner is creating a **temporary LetMallow brand kit and design system**. Apply the supplied kit to the next alpha version. Its scope covers the website, future apps, email newsletters/campaigns and other brand communications. | Await the kit/assets and usage guidance. Implement shared design tokens, components and documented channel-specific patterns so future surfaces use the same identity. Check the applied website across responsive layouts, keyboard use, focus, contrast and forms; run affected builds/checks. Version the temporary system so it can be replaced or refined later. No supplied kit or completed application is claimed yet. |
+| LM-R14 · When prototype source is available | The owner is building an **AI-powered rent affordability calculator prototype for renters in Claude**. Once it is pushed to the repository, ChatGPT can review and integrate the actual implementation. | Integrate as a **webpage** when the prototype source is ready. Integrate as a **widget when the widget has been built**, and as an **API when the API has been built**. Treat these as three separate delivery surfaces with their own readiness checks; no widget, API, contract or repo path is assumed to exist. |
+| LM-R15 · Ideally the sprint after the brand kit sprint | Make **minor changes, improvements and corrections** drawn from the owner's feedback and observed alpha issues. The detailed item list is still to be supplied/triaged. | Maintain a scoped backlog with a concrete expected result for each selected item. Verify the affected journeys and record the changes in the next alpha release notes. Address critical defects when identified; the preferred follow-up sprint is not a reason to defer an urgent fix. |
+
+**Calculator integration checks:** inspect the pushed source, licence/dependencies, inputs, calculations, AI behaviour, assumptions, data handling and actual runtime requirements before choosing the integration approach. Check calculations against worked examples, make assumptions/results editable or explainable as appropriate, and protect renter-entered financial information. Keep this a renter self-assessment tool with no automatic tenant scoring or eligibility decisions. Apply the existing £0 constraint; neither a calculation formula, affordability threshold nor permission to send financial inputs to an external model is established by this roadmap entry.
+
+The calculator's integration timing depends on source and surface readiness; it is not automatically a prerequisite for the brand kit release or the following corrections sprint. Creating new apps, running email campaigns and integrating unbuilt widget/API surfaces are future work beyond applying the supplied design system to the next website alpha.
 
 ## Owner-requested AI programme
 
@@ -81,4 +95,4 @@ Review this roadmap after each accepted increment. Add new ideas as candidates, 
 - [Canonical repository](https://github.com/Codewave-Studio-UK/letmallow-platform).
 - [Existing delivery issues](https://github.com/Codewave-Studio-UK/letmallow-platform/issues).
 - [Existing feedback and reports form](https://tally.so/r/8NzzzY).
-- Source baseline used: current `dev` guidance, README, alpha specification and project-status document; PRs #4, #6 and #7; the owner's AI and SystemBot#Colin requirements of 06/11/2026. This roadmap does not claim legal clearance, production readiness or completed account integration.
+- Source baseline used: current `dev` guidance, README, alpha specification and project-status document; PRs #4, #6 and #7; the owner's AI, SystemBot#Colin, temporary brand kit, calculator and follow-up sprint requirements of 06/11/2026. This roadmap does not claim legal clearance, production readiness or completed account integration.
