@@ -1,8 +1,8 @@
 # LetMallow — future roadmap
 
-**Working draft v0.1 · Updated 06/11/2026 · Codewave Studio**
+**Working draft v0.2 · Updated 06/11/2026 · Codewave Studio**
 
-This document records the direction of LetMallow beyond the current alpha. It is a prioritised backlog, not a promise of features or delivery dates. Existing work, unverified capabilities and proposed ideas are distinguished below. No roadmap item is marked complete by this first draft.
+This document records the direction of LetMallow beyond the current alpha. It is a prioritised backlog, not a promise of delivery dates. Existing work, owner-requested features and proposed ideas are distinguished below. The requested AI enhancements and SystemBot#Colin are planned, not implemented by this documentation update.
 
 ## Product outcome and agreed boundaries
 
@@ -16,11 +16,11 @@ Help real renters find relevant housing opportunities and help authorised advert
 
 ## Starting point
 
-Repository checks on 06/11/2026 found that `main` and `dev` still contained the initial README. The full alpha source exists separately and needs synchronising. [PR #4](https://github.com/Codewave-Studio-UK/letmallow-platform/pull/4) proposes the LetMallow README rename and remains open at this check.
+The initial source-sync gap has been closed on `dev`: [rename PR #4](https://github.com/Codewave-Studio-UK/letmallow-platform/pull/4) and [source-import PR #6](https://github.com/Codewave-Studio-UK/letmallow-platform/pull/6) are merged. `main` still contains the initial README at the 06/11/2026 check; stable promotion remains a separate decision.
 
-The project handover and recovered source describe search, moderated adverts, free enquiries, account controls and a separate payment simulator. This roadmap task has not revalidated those journeys in the deployed service. The handover's eight passing local tests are historical, fixture-based evidence; they do not establish live integrations or real user outcomes.
+The imported source includes basic search, moderated adverts, free enquiries, account controls and a separate payment simulator. Source-import PR #6 records eight local tests and both builds passing. The later, open [resilience PR #7](https://github.com/Codewave-Studio-UK/letmallow-platform/pull/7) records 12 tests, both builds and publication/HTTP checks for Site version 2. These are dated delivery records, not new runtime checks by this roadmap update, and do not establish real participant outcomes or all account integrations.
 
-Neon connection and migration, authentic Stripe sandbox evidence, public visitor access and the first genuine advert/enquiry outcomes remain verification work. Reuse the existing Site, Netlify project named `letmallow` and feedback form; do not create replacements as part of roadmap delivery.
+Neon connection and migration, authentic Stripe sandbox evidence, full browser/authenticated journeys and the first genuine advert/enquiry outcomes remain verification work. PR #7 also records an unresolved Netlify metadata/visitor-access discrepancy. Reuse the existing Site, Netlify project named `letmallow` and feedback form; do not create replacements as part of roadmap delivery.
 
 ## Prioritised delivery
 
@@ -28,13 +28,27 @@ The IDs below are stable roadmap references. “Now” and “Next” express pr
 
 | ID / priority | Increment | Evidence needed to complete it | Tracking |
 | --- | --- | --- | --- |
-| LM-R01 · Now | Establish a complete, reproducible source baseline. Recover and synchronise the existing implementation, reconcile the rename PR and document build, deployment and moderation setup. | Reviewed source-sync PR into `dev`; service tests and both application builds pass on the recovered source; actual deployment and visitor access are checked and their limits recorded. | [Rename PR #4](https://github.com/Codewave-Studio-UK/letmallow-platform/pull/4); source-sync issue to be created when selected. |
+| LM-R01 · Now | Maintain the imported source baseline and finish practical deployment/access verification. Keep build, deployment and moderation setup reproducible. | Source import is delivered; retain passing service/build evidence and complete the outstanding runtime, browser and authenticated checks with their limits recorded. | Merged [PR #4](https://github.com/Codewave-Studio-UK/letmallow-platform/pull/4) and [PR #6](https://github.com/Codewave-Studio-UK/letmallow-platform/pull/6); follow-up [PR #7](https://github.com/Codewave-Studio-UK/letmallow-platform/pull/7). |
 | LM-R02 · Now | Prove the first useful real rental journey. Check provider search routes and operate the reviewed first-party advert and free enquiry flow. | One authorised advertiser in England and one in Wales; a separate renter enquires for free, the advertiser replies and chooses whether to share contact, and both parties can remove their data. Include island and Welsh-name search checks. Publish only aggregate evidence. | [Alpha 1 · Issue #1](https://github.com/Codewave-Studio-UK/letmallow-platform/issues/1). |
 | LM-R03 · Next | Connect Neon and rehearse the database change while preserving the working backend. | Actual account/free entitlement and data-handling decisions verified; synthetic migration reconciles records and permissions; backup/restore and rollback rehearsed; final cutover uses a write freeze and one authoritative writer. | [Alpha 2 · Issue #2](https://github.com/Codewave-Studio-UK/letmallow-platform/issues/2). |
 | LM-R04 · Next | Prove Stripe sandbox fulfilment and test the commercial assumptions. | Authentic sandbox Checkout and verified server webhook; retry, replay, amount/currency mismatch and cancellation checks. Browser return pages cannot grant entitlements. Prices and paid benefits remain hypotheses; live charges stay disabled. | [Alpha 3 · Issue #3](https://github.com/Codewave-Studio-UK/letmallow-platform/issues/3). |
 | LM-R05 · After alpha evidence | Prepare an owner-reviewed stable release. | Practical security, account-isolation, accessibility and mobile checks; working reporting, moderation, deletion and recovery procedures; current privacy/consumer documentation; known limits and rollback recorded. Owner accepts the release before promotion to `main`. | Proposed release checklist; no release date agreed. |
 
 Genuine participant recruitment or contact requires explicit owner instructions. Synthetic records can verify software behaviour but cannot satisfy LM-R02's real-world outcome.
+
+## Owner-requested AI programme
+
+**LM-R10 — confirmed feature direction, requested 06/11/2026.** The owner has requested the following capabilities. This expands the earlier search/drafting candidate into a defined AI programme; delivery still depends on source quality, evaluation, privacy and the £0 budget. The basic local classifier and template helper do not fulfil this programme.
+
+| Reference | Required capability | Key behaviour |
+| --- | --- | --- |
+| LM-AI01 | AI-powered sitewide search | Search authorised site content, adverts, area guides and help information with useful, source-linked results and permission-aware retrieval. |
+| LM-AI02 | AI-powered auto-filter | Disabled by default; enabled explicitly by the user; visible, editable and reversible. Manual overrides take priority. |
+| LM-AI03 | AI-powered customer service | Answer from approved support information, explain uncertainty and provide a working human escalation route. |
+| LM-AI04 | AI-powered area information | A listing-page guide to the property's area and verified nearby areas, covering amenities, civic/political facts, nature, transport/traffic, crime, utilities, living costs, income and employment. |
+| LM-AI05 | SystemBot#Colin updates agent | Maintain a system-wide update inventory and refresh jobs on the owner's requested cadences, including area-guide data. |
+
+See the [AI feature roadmap](docs/ai-roadmap.md) and [SystemBot#Colin roadmap](docs/systembot-colin-roadmap.md) for acceptance criteria, the Horfield example, source checks and schedule definitions. No scheduled jobs or external AI integrations are activated by these documents.
 
 ## Future candidates
 
@@ -46,7 +60,6 @@ These are proposals for discovery, not approved implementation work. Promote a s
 | LM-R07 | Cross-device saved searches and optional alerts. | Confirm repeat-search demand; agree minimal stored preferences and removal rules. Verify delivery costs, consent and unsubscribe controls before enabling notifications. |
 | LM-R08 | Advertiser management: clearer advert status, edits, renewal and eventual multi-advert tools. | Test the workflow with genuine advertisers. Preserve review, authority checks, expiry and auditability; agree any paid entitlement separately. |
 | LM-R09 | Stronger moderation and support: report triage, case status and proportionate abuse controls. | Use pilot incidents and moderation workload to set priorities. Agree response ownership and private evidence handling; do not imply identity or property verification beyond actual checks. |
-| LM-R10 | More useful AI search and advert-drafting assistance. | Compare against the existing local classifier/templates on held-out examples, including Welsh aliases and island locations. Keep suggestions editable and allow abstention. Any external model needs a separate cost/privacy decision; private advert or enquiry text is not approved for external processing. |
 | LM-R11 | Sustainable premium features for advertisers and renters. | Interview both roles and test willingness to pay. Explore additional advertiser slots, richer tools and aggregate analytics; explore renter convenience or wanted-advert benefits. Verify current requirements separately for England and Wales and approve pricing, cancellation and refunds before live money. |
 | LM-R12 | Commercial brand readiness and possible wider coverage. | Refresh LetMallow trade mark/domain/handle checks before commercial commitments. Wider geography, paid domains and new tenancy/payment activities each require a separate owner decision; the current scope remains England and Wales. |
 
@@ -68,4 +81,4 @@ Review this roadmap after each accepted increment. Add new ideas as candidates, 
 - [Canonical repository](https://github.com/Codewave-Studio-UK/letmallow-platform).
 - [Existing delivery issues](https://github.com/Codewave-Studio-UK/letmallow-platform/issues).
 - [Existing feedback and reports form](https://tally.so/r/8NzzzY).
-- Source baseline used: the project handover updated 06/11/2026 and the recovered `AGENTS.md`, `README.md` and `docs/alpha-specification.md`. Their descriptions of deployed behaviour require fresh checks; this roadmap does not claim legal clearance, production readiness or completed account integration.
+- Source baseline used: current `dev` guidance, README, alpha specification and project-status document; PRs #4, #6 and #7; the owner's AI and SystemBot#Colin requirements of 06/11/2026. This roadmap does not claim legal clearance, production readiness or completed account integration.
