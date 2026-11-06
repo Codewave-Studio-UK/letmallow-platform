@@ -1,0 +1,10 @@
+import {cp, mkdir,writeFile,rm} from 'node:fs/promises';
+import {shell} from '../public/market/shell.mjs';
+import {brand,canonical} from '../public/market/domain.mjs';
+const out=new URL('../netlify-dist/',import.meta.url);
+await rm(out,{recursive:true,force:true});await mkdir(out,{recursive:true});await cp(new URL('../public/',import.meta.url),out,{recursive:true});
+const html='<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="rental-host" content="netlify"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><meta name="description" content="Find a room, flat or house in England and Wales, including islands."><title>'+brand+' | Rooms and homes in England and Wales</title><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/market/style.css"><script type="module" src="/market/app.mjs"></script></head><body>'+shell()+'</body></html>';
+await writeFile(new URL('index.html',out),html);
+await writeFile(new URL('_redirects',out),'/api/homes '+canonical+'/api/homes 200\n');
+await writeFile(new URL('_headers',out),'/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: no-referrer\n  X-Robots-Tag: noindex, nofollow\n');
+console.log('Built Netlify public front end. Account actions use the canonical authenticated service.');
