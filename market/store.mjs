@@ -1,3 +1,11 @@
+// An absent setting keeps the established D1 writer. An invalid or failing
+// configured backend must fail closed; it must never select another database.
+export function marketStore(config, binding, send=fetch){
+ const backend=config.DATABASE_BACKEND??'d1';
+ if(backend==='d1')return d1Store(binding);
+ if(backend==='neon')return neonStore(config.DATABASE_URL,send);
+ throw Error('Unsupported database backend');
+}
 export function d1Store(binding){
  if(!binding)throw Error('Database binding is unavailable');
  const stmt=(q,p)=>binding.prepare(q).bind(...p);

@@ -2,7 +2,7 @@
 
 Residential rental alpha for England and Wales, including islands, by Codewave Studio. LetMallow is the selected project name; commercial trade mark clearance remains outstanding. Visitors can explore current third-party rental searches immediately. Authorised first-party adverts appear only after studio review.
 
-[Canonical GitHub repository](https://github.com/Codewave-Studio-UK/letmallow-platform) · [Project status and next steps](docs/project-status.md) · [Open the alpha](https://codewave-rental-alpha.hollowcarat.chatgpt.site) · [Feedback and reports](https://tally.so/r/8NzzzY) · [Delivery specification](docs/alpha-specification.md) · [Name checks](docs/research/brand-screen.md)
+[Canonical GitHub repository](https://github.com/Codewave-Studio-UK/letmallow-platform) · [Project status and next steps](docs/project-status.md) · [06/11/2026 delivery evidence](docs/alpha-increment-2026-11-06.md) · [Open the alpha](https://codewave-rental-alpha.hollowcarat.chatgpt.site) · [Feedback and reports](https://tally.so/r/8NzzzY) · [Delivery specification](docs/alpha-specification.md) · [Name checks](docs/research/brand-screen.md)
 
 ## Running the project
 
@@ -13,7 +13,7 @@ node --test tests/*.test.mjs
 node scripts/build-netlify.mjs
 ```
 
-The second command produces `netlify-dist/`. It contains the public search, local preference model, fonts, photos and routing configuration. Serve that directory at the web root. Netlify proxies only public community adverts. Signed-in actions run on the canonical Sites origin. Only that origin trusts the platform's authenticated identity headers.
+The second command produces `netlify-dist/`. It contains the public search, local preference model, fonts, photos and routing configuration. Serve that directory at the web root. Netlify proxies only public community adverts. Signed-in actions run on the canonical Sites origin. Only that origin trusts the platform's authenticated identity headers. Netlify's project metadata does not establish a working public deployment; see the current delivery evidence.
 
 ## Hosting and operating the alpha
 
