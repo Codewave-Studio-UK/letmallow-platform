@@ -18,19 +18,19 @@ Maintain an inventory of everything that needs scheduled refresh, with an owner,
 
 ## Requested schedule catalogue
 
-Support every cadence requested by the owner. Jobs must store an exact interval or calendar rule, not an ambiguous display label. The meanings of **bi-hourly**, **bi-weekly** and **bi-monthly** remain unresolved until confirmed; do not silently choose a meaning or enable such a job.
+Support every cadence requested by the owner. Jobs must store an exact interval or calendar rule, not an ambiguous display label. **Confirmed by the owner on 06/11/2026: bi-hourly, bi-weekly and bi-monthly mean twice per hour, week and calendar month respectively.** Choose each job's exact weekdays, calendar dates and execution times before activation.
 
-| Requested label | Exact rule to record before activation |
+| Requested label | Confirmed meaning / configuration needed |
 | --- | --- |
-| Bi-hourly | Confirm **every 30 minutes** (twice an hour) or **every 2 hours**. |
+| Bi-hourly | **Every 30 minutes** (twice per hour). |
 | Hourly | Every 1 hour. |
 | Three-hourly | Every 3 hours. |
 | Six-hourly | Every 6 hours. |
 | 12-hourly | Every 12 hours. |
 | Daily | Once per calendar day at a specified local time, or an explicitly selected fixed 24-hour interval. |
-| Bi-weekly | Confirm **twice each week** on named weekdays or **every 14 days**. |
+| Bi-weekly | **Twice each week**, on two specified weekdays at chosen times. |
 | Weekly | A named weekday and time, or an explicitly selected fixed 7-day interval. |
-| Bi-monthly | Confirm **twice per calendar month** with two date rules or **every 2 calendar months**. |
+| Bi-monthly | **Twice per calendar month**, with two specified date/time rules and a short-month policy. |
 | Monthly | A specified calendar day/time and a short-month/month-end rule. |
 | Quarterly | Every 3 calendar months with a chosen anchor date/time. |
 | Bi-annually | Twice per year / every 6 calendar months, with chosen anchor dates/times. |
@@ -74,9 +74,9 @@ Batch and cache shared area data, avoid generating unchanged summaries and prove
 ## Delivery and acceptance
 
 1. Create the inventory and schedule engine with disabled-by-default configuration and deterministic fixture jobs.
-2. Prove every schedule rule using a synthetic clock, including the alternative meanings of unresolved “bi-” labels, London DST changes, short months and leap years.
+2. Prove every schedule rule using a synthetic clock, including the confirmed twice-per-period “bi-” cadences, London DST changes, short months and leap years.
 3. Pilot a small number of approved source connectors and a shared Horfield area profile. Test unchanged data, new releases, invalid geography/units, missing data, source conflicts, schema changes, malicious source instructions and rollback.
 4. Test timeout, quota exhaustion, retries, overlapping runs, restart/missed-run recovery, stop/pause controls, private-data isolation and cost caps. Verify that stale information is never relabelled as fresh.
-5. Obtain explicit cadence choices and operational ownership, then enable only the reviewed jobs. Expand coverage as actual reliability and cost evidence allow.
+5. Select each job's cadence, weekdays/calendar dates, execution times and operational ownership, then enable only the reviewed jobs. Expand coverage as actual reliability and cost evidence allow.
 
 No implementation completion, model integration, live update feed or active schedule is claimed by this roadmap.
