@@ -8,7 +8,7 @@ Use the following repositories to find relevant free APIs for LetMallow. They ar
 
 | Repository | Use within LetMallow | README snapshot reviewed |
 | --- | --- | --- |
-| [public-apis/public-apis](https://github.com/public-apis/public-apis) | Discover postcode, address/location, transport, amenities and other public-data APIs for LM-R16 and LM-AI04. | README blob `340599b11181467835c66b38581f066f9b1671e4`, retrieved 09/11/2026. |
+| [public-apis/public-apis](https://github.com/public-apis/public-apis) | Discover postcode, address/location, transport, amenities and other public-data APIs for the separate landlord LM-R16, renter LM-R19 and area-guide LM-AI04 sprints. | README blob `340599b11181467835c66b38581f066f9b1671e4`, retrieved 09/11/2026. |
 | [IdoY12/awesome-free-ai-apis](https://github.com/IdoY12/awesome-free-ai-apis) | Discover recurring free inference and supporting AI services for LM-R17, approved help and evidence-grounded area summaries. | README blob `689db6db7f27a85ab8818cbfa8f22c03c94a6fc4`, retrieved 09/11/2026. |
 
 Prefer recurring free allowances and permitted commercial use within the existing **£0 additional-spend limit**. A directory badge, a working documentation link or an existing chatbot subscription does not establish a LetMallow API entitlement. Keep the existing official statistical/local sources in the [AI roadmap](ai-roadmap.md#primary-source-register); these catalogues supplement them.
@@ -31,11 +31,11 @@ The comparison order is a proposed implementation sequence, not a claim that one
 
 ## Delivery and acceptance
 
-LM-R18 supplies the API/source decisions needed by existing work; it does not change the brand-kit, corrections, LM-R16 then LM-R17 sprint order.
+LM-R18 is the API/source register supporting delivery, not one combined sprint for every provider. Follow the [sprint scope rule](../ROADMAP.md#sprint-scope-rule): each API evaluation/integration task belongs to its owning feature sprint. The default sequence remains brand kit, the first focused correction, **landlord LM-R16 → renter LM-R19 → compatibility/buddy-up LM-R20 → search LM-R17**, followed by separately scoped AI features. No shared API dependency merges those goals.
 
-1. **Before LM-R16 location integration:** verify Postcodes.io behaviour with synthetic/public sample locations; evaluate Geoapify's address coverage and Google's separate map entitlement. Record schema, attribution, quota, account plan and failure/manual-entry behaviour. Do not advertise verified premise-level coverage without evidence.
+1. **Location work scoped separately to LM-R16 and LM-R19:** verify Postcodes.io behaviour with synthetic/public sample locations; evaluate Geoapify's address coverage and Google's separate map entitlement. Record schema, attribution, quota, account plan and failure/manual-entry behaviour. Reuse evaluated components, but accept landlord premise/address selection in LM-R16 and renter desired-area selection in LM-R19 independently. Do not advertise verified premise-level coverage without evidence.
 2. **During LM-R17:** compare Groq and an eligible Cloudflare model on the owner's multi-city BTR/balcony/parking query, follow-up corrections, Welsh/island locations, ambiguous budgets, missing features, malicious input, quota exhaustion and timeout. Validate returned structured criteria on the server. Models must not invent listings, relax hard requirements or replace the authoritative inventory query.
-3. **During LM-AI04 and LM-AI05:** pilot Police.uk alongside the already registered official sources. Store source URL/licence, geography, data period, retrieval time, schema and last valid snapshot. Give each future Colin job an appropriate release-aware refresh rule; no schedule is activated here.
+3. **Separate LM-AI04 area-guide and LM-AI05 agent sprints:** pilot Police.uk alongside the already registered official sources in the area-guide sprint; implement automatic refresh only in the agent sprint. Store source URL/licence, geography, data period, retrieval time, schema and last valid snapshot. Give each future Colin job an appropriate release-aware refresh rule; no schedule is activated here.
 
 Keep external calls disabled until their capability has passed its existing implementation gates. Keys, account evidence and private processing details belong outside the public repository. Do not send private addresses/evidence, advert/enquiry text, contact details or affordability inputs to external inference services. Start model evaluation with synthetic data; any later real-data processing needs the documented privacy decision and permitted inputs.
 
