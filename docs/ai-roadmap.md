@@ -8,7 +8,7 @@ The current small browser-based home-type classifier and advert templates are a 
 
 ## LM-AI01 — AI-powered sitewide search
 
-**Dedicated sprint: [LM-R17](../ROADMAP.md#lm-r17--conversational-ai-search), following the structured advert sprint LM-R16.** The owner's 09/11/2026 direction replaces the earlier conventional-search/filter fallback: use one conversational search experience, visible interpreted requirements and direct corrections. Do not reinstate a separate traditional filter-panel journey to satisfy an older roadmap clause.
+**Own dedicated sprint: [LM-R17](../ROADMAP.md#lm-r17--conversational-ai-search), also referenced as LM-AI01.** The current roadmap sequence places the separate landlord (LM-R16), renter (LM-R19) and compatibility/buddy-up (LM-R20) sprints before search; LM-R20 is its own feature rather than an implementation task in search. Property search uses LM-R16's data contract; wanted-content search also uses LM-R19's. LM-R17 does not include delivery of optional preference suggestions, customer service, area guides or SystemBot#Colin. The owner's 09/11/2026 direction replaces the earlier conventional-search/filter fallback: use one conversational search experience, visible interpreted requirements and direct corrections. Do not reinstate a separate traditional filter-panel journey to satisfy an older roadmap clause.
 
 - Search published adverts, appropriately public wanted adverts, area guides, approved help/policy content and navigation. Match meaning and synonyms, Welsh aliases and islands. Distinguish property offers from wanted adverts; a wanted advert cannot count as an available home.
 - Parse the owner's two-bedroom BTR apartment/balcony/parking example across **Oxford OR London OR Manchester OR Leeds**, with a **£1,500/month maximum**. Preserve the stated budget period and hard requirements. Ask about material ambiguity, including budget inclusions and parking costs; do not infer a precise location, all-in budget or feature availability without evidence.
@@ -24,6 +24,8 @@ The current small browser-based home-type classifier and advert templates are a 
 
 ## LM-AI02 — Optional AI preference suggestions
 
+**Own dedicated sprint, after core search LM-R17.** Add opt-in suggestions to the existing conversation and requirement summary, with independent acceptance. Core search can be accepted using explicit user instructions before this feature is delivered.
+
 The 09/11/2026 conversational-search direction supersedes the old traditional filter-panel presentation. Preserve the existing **off by default / opt-in / override** rules for suggestions beyond what the user explicitly requested.
 
 - Applying “two bedrooms, Leeds, up to £1,500” from the user's search is following an explicit instruction. Adding a commute radius, inferred lifestyle preference or other unstated constraint is optional AI inference and must not happen silently.
@@ -36,6 +38,8 @@ The 09/11/2026 conversational-search direction supersedes the old traditional fi
 
 ## LM-AI03 — AI-powered customer service
 
+**Own dedicated sprint.** Deliver the bounded support assistant and its acceptance independently of search, preference suggestions, area information and the updates agent. Depend on approved support content and verified provider/privacy entitlements.
+
 - Provide an identifiable AI support assistant grounded in approved, versioned information about searching, posting, moderation, accounts, enquiries, privacy and test memberships.
 - Link answers to the relevant help page or action, and distinguish general guidance from an actual account lookup or completed action. Authenticated lookups require ownership checks; support logs must minimise personal data.
 - Start with answers and guided navigation. Any later ability to alter adverts, disclose contact information, erase data or change payments requires a separately authorised, confirmed workflow.
@@ -45,6 +49,8 @@ The 09/11/2026 conversational-search direction supersedes the old traditional fi
 **Acceptance:** test answers against the approved knowledge base, refusals/uncertainty, stale policies, account isolation, malicious inputs and successful escalation. Retain useful help links when the model is unavailable.
 
 ## LM-AI04 — AI-powered area information
+
+**Own dedicated sprint.** Deliver and evaluate a sourced area-guide pilot independently of customer service, search and SystemBot#Colin. Store versioned evidence with checked manual/fixture refreshes during the pilot; production automatic refresh is the separately accepted LM-AI05 dependency, not completion claimed within this sprint. Later independent coverage expansions get their own entries.
 
 Each rental listing should offer an **About the area** section with a concise sourced overview, expandable topics, useful maps/links and supplementary cards for relevant nearby areas. An optional area question interface may answer only from the same approved evidence. Summaries explain facts; they must not fabricate local knowledge.
 
@@ -88,7 +94,7 @@ For LM-R17, first compare Groq and a free-eligible Cloudflare Workers AI model u
 
 ## Delivery and budget
 
-Proposed sequence: (1) approved-source catalogue and LM-R16 structured property/cost data; (2) LM-R17 evaluated conversational AI search and optional preference suggestions; (3) bounded customer-service pilot; (4) a sourced Horfield area-guide pilot; (5) SystemBot#Colin refresh validation and gradual England/Wales coverage. Establish the updates registry during source work so the guide pilot can use it. This is a proposed sequence, not a dated commitment.
+Apply the [one-feature-per-sprint rule](../ROADMAP.md#sprint-scope-rule). Follow the roadmap's separately scoped landlord LM-R16, renter LM-R19 and compatibility/buddy-up LM-R20 priorities. The default AI sequence is **LM-R17/LM-AI01 search → LM-AI02 optional preference suggestions → LM-AI03 customer service → LM-AI04 sourced area-guide pilot → LM-AI05 SystemBot#Colin**. Each feature has its own sprint and completion evidence. Preparing approved sources and shared contracts can support a feature, but does not combine delivery goals. Establish the updates registry during source work; enable automated area refresh only after LM-AI05 is accepted. Independent work may proceed when its actual dependencies are ready. Dates, timeboxes and further coverage increments remain to be planned.
 
 Use cached, shared evidence and bounded model calls. Check account-level free entitlements, data licences, automation permission, quotas and outage behaviour before selecting a provider. Existing AI subscriptions do not establish application API entitlement. If a capability cannot run within £0, record the gap and obtain a budget decision before enabling costs; do not silently substitute ordinary automation and call it generative AI.
 
