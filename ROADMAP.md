@@ -1,6 +1,6 @@
 # LetMallow — future roadmap
 
-**Working draft v0.9 · Updated 09/11/2026 · Codewave Studio**
+**Working draft v0.10 · Updated 09/11/2026 · Codewave Studio**
 
 This document records the direction of LetMallow beyond the current alpha. It is a prioritised backlog, not a promise of delivery dates. Existing work, owner-requested features and proposed ideas are distinguished below. The requested AI enhancements and SystemBot#Colin are planned, not implemented by this documentation update.
 
@@ -126,7 +126,7 @@ This is **one dedicated sprint** for people posting a **Rental Wanted** advert. 
 **Acceptance for LM-R19:** verify there is no renter **Ad Type**, **Nation** or **islands** field; at least one and no more than three move-in dates; buddy-up states; minimum/preferred/maximum tenancy handling; conditional rental-type, bedroom/bathroom and room-size behaviour; budget period and all-in-cost preference; required/preferred/no-preference semantics; furnishing, amenity and accessibility requirements; and strict wanted-ad title/description validation. Test lookup with **BS30, Somerset, Bristol, Sneyd Park, TR21, St Mary's and Hugh Town**, including ambiguity, no-match and provider-outage/manual-correction states. Verify draft, back navigation, preview, moderation, edit and withdrawal. On Galaxy/Chrome check keyboard overlap, location suggestion selection, date controls, multi-select chips, long forms, validation/focus, draft recovery and no horizontal overflow. API/server validation must enforce the same rules as the client.
 
 
-**Benefits (new form field):** optional, clearly labelled disclosure of benefit/housing-support circumstances, with 'Prefer not to say' and 'Not applicable' options. Do not request award letters, account numbers, medical details or amounts by default. Do not expose this publicly without a deliberate, informed opt-in; do not use receipt of benefits to automatically reject, suppress or rank a renter. Review the England rental-discrimination rules and Welsh requirements before launch.
+**Housing-related benefits (new form field; user-facing label: Benefits):** optional disclosure limited to Housing Benefit, the housing costs element of Universal Credit, and other support specifically intended to meet housing costs. Do not treat PIP, the UC standard allowance, or unrelated benefits as housing benefits. Provide 'Prefer not to say' and 'Not applicable' options. Do not request award letters, account numbers, medical details or amounts by default. Do not expose this publicly without a deliberate, informed opt-in; do not use receipt of benefits to automatically reject, suppress or rank a renter. Review the England rental-discrimination rules and Welsh requirements before launch.
 
 **Deal-breakers (new form field):** allow zero to ten user-authored, editable hard requirements, with a visible 10-item cap, plain-language guidance, duplicate detection, character limits and clear error handling. Offer practical housing/household examples (e.g. no smoking indoors, step-free access, pets permitted, maximum total monthly cost) rather than protected-characteristic exclusions. Save structured tags where possible while preserving the renter's own words; prohibit discriminatory or abusive entries. These are explicit hard constraints for the later LM-R20 hybrid model, never AI-inferred deal-breakers.
 
