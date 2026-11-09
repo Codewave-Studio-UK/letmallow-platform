@@ -80,6 +80,12 @@ Show **data period**, **last checked** and any stale/unavailable status. A succe
 
 **Acceptance:** test one Horfield guide and an equivalent Welsh/island fixture; verify boundaries/nearby-area claims, source-linked summaries, correct units/denominators, unavailable-data states, source conflicts, stale data, corrections and reversible refreshes. Test that area statistics never become automatic tenant scores or political/demographic filters.
 
+## API discovery and provider evaluation
+
+Use the owner's selected [public-apis/public-apis](https://github.com/public-apis/public-apis) and [IdoY12/awesome-free-ai-apis](https://github.com/IdoY12/awesome-free-ai-apis) catalogues through the [LM-R18 API candidate/source register](api-sources.md). They supply discovery leads alongside the official sources below; a directory's free-tier or data-use badge is not a provider entitlement or privacy decision.
+
+For LM-R17, first compare Groq and a free-eligible Cloudflare Workers AI model using synthetic search queries, structured criteria validation and quota/outage tests. Provider/model selection remains open. Location candidates support LM-R16; Police.uk is for the later area-guide pilot. The register records primary-source checks, remaining Google Maps/address-coverage work and the unresolved Gemini public-UK entitlement. No external inference, private-data transfer or paid upgrade is enabled.
+
 ## Delivery and budget
 
 Proposed sequence: (1) approved-source catalogue and LM-R16 structured property/cost data; (2) LM-R17 evaluated conversational AI search and optional preference suggestions; (3) bounded customer-service pilot; (4) a sourced Horfield area-guide pilot; (5) SystemBot#Colin refresh validation and gradual England/Wales coverage. Establish the updates registry during source work so the guide pilot can use it. This is a proposed sequence, not a dated commitment.

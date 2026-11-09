@@ -1,6 +1,6 @@
 # LetMallow — future roadmap
 
-**Working draft v0.4 · Updated 09/11/2026 · Codewave Studio**
+**Working draft v0.5 · Updated 09/11/2026 · Codewave Studio**
 
 This document records the direction of LetMallow beyond the current alpha. It is a prioritised backlog, not a promise of delivery dates. Existing work, owner-requested features and proposed ideas are distinguished below. The requested AI enhancements and SystemBot#Colin are planned, not implemented by this documentation update.
 
@@ -94,6 +94,16 @@ Replace the traditional search-plus-filter-panel journey with natural-language e
 **Context and acceptance:** remember the current conversation's locations, hard requirements, explicit corrections, budget period and chosen display/payment preferences; support “Leeds only”, “increase to £1,600” and “parking must be included” without losing other requirements. Let users inspect, correct and reset context, and opt in before saving it across sessions. Ask focused questions, explain unavailable data, and propose relaxations without applying them silently. Test the multi-city query, zero/some own matches, irrelevant/pending/expired listings, unknown features/costs, third-party outage, model outage, context reset, permission boundaries and mobile recovery. See [the AI roadmap](docs/ai-roadmap.md) for the source hierarchy and evaluation requirements.
 
 **Decisions to resolve during sprint discovery:** the meaning of an unqualified budget (base rent, required recurring total or all-in costs), the final renter-advert questions and the cost/coverage evidence for Google Maps plus address lookup. Make budget scope visible and clarify it when missing; do not guess that excluded bills or parking fit inside a stated maximum. These open implementation choices do not block recording the two sprints.
+
+## API discovery and provider selection
+
+**Owner decision added 09/11/2026.** Use [public-apis/public-apis](https://github.com/public-apis/public-apis) and [IdoY12/awesome-free-ai-apis](https://github.com/IdoY12/awesome-free-ai-apis) as LetMallow's preferred API discovery repositories. Provider documentation, licences and actual account entitlements remain the authority for permitted use and cost.
+
+| ID / intended timing | Requirement | Completion evidence |
+| --- | --- | --- |
+| LM-R18 · Discovery dependency for LM-R16, LM-R17 and area guides | Maintain the [API candidate/source register](docs/api-sources.md). Evaluate postcode/address/location and public-area sources from the first repository, and recurring free inference candidates from the second. | Prove commercial-use/licence fit, England/Wales coverage where applicable, actual free entitlement, bounded quotas, permitted inputs and outage/manual-correction behaviour. Record live checks separately from documentary or synthetic checks. Select a provider/model only after the relevant sprint evaluation. |
+
+The initial register shortlists Postcodes.io, conditional Geoapify location services, Police.uk, and a Groq/Cloudflare Workers AI comparison. Its entries are planned candidates, not completed integrations. Keep the existing sprint order and £0 additional-spend limit; this decision activates no provider account, billing, model call or Colin schedule.
 
 ## Owner-requested AI programme
 
