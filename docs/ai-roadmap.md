@@ -1,29 +1,38 @@
 # LetMallow — AI feature roadmap
 
-**Owner-requested scope · Updated 06/11/2026 · Planned, not yet implemented**
+**Owner-requested scope · Updated 09/11/2026 · Planned, not yet implemented**
 
-Part of [LM-R10 in the future roadmap](../ROADMAP.md). The owner requested AI-powered sitewide search, optional auto-filtering, customer service and listing-page area information. Area information must receive automatic source updates from the future system agent, **SystemBot#Colin**.
+Part of [LM-R10 in the future roadmap](../ROADMAP.md). The owner requested AI-powered sitewide search, optional auto-filtering, customer service and listing-page area information. The 09/11/2026 search feedback is scheduled as LM-R17 and updates the auto-filter presentation to optional preference suggestions within conversational search. Area information must receive automatic source updates from the future system agent, **SystemBot#Colin**.
 
 The current small browser-based home-type classifier and advert templates are a starting point. They do not provide sitewide semantic search, generative customer service or sourced area guides. Model/provider selection and release dates remain open; no inference entitlement, source API or ongoing free allowance is assumed.
 
 ## LM-AI01 — AI-powered sitewide search
 
-- Search published adverts, wanted adverts, area guides, approved help/policy content and navigation. Cover meaning and synonyms as well as exact terms; support Welsh place aliases and islands.
-- Return recognisable result types, direct links and the relevant source/update date. Generated answers must be supported by the retrieved material; say when information is missing rather than inventing properties, availability or partnerships.
-- Enforce permissions before retrieval and generation. Public search must exclude pending/withdrawn adverts, private proof, inboxes and other users' account data. Any future search of the user's own records must remain authenticated and separately scoped.
-- Keep conventional search available during model failure, rate limits or exhausted free allowances. Refresh the index after publication, expiry, withdrawal and deletion; essential access restrictions must not wait for a periodic crawl.
+**Dedicated sprint: [LM-R17](../ROADMAP.md#lm-r17--conversational-ai-search), following the structured advert sprint LM-R16.** The owner's 09/11/2026 direction replaces the earlier conventional-search/filter fallback: use one conversational search experience, visible interpreted requirements and direct corrections. Do not reinstate a separate traditional filter-panel journey to satisfy an older roadmap clause.
 
-**Acceptance:** evaluate a held-out set of realistic queries across the supported content types, including misspellings, Welsh aliases, unsupported questions, stale records, permission boundaries and instructions embedded in retrieved text. Record relevance, source support, response time and actual cost; agree targets before release.
+- Search published adverts, appropriately public wanted adverts, area guides, approved help/policy content and navigation. Match meaning and synonyms, Welsh aliases and islands. Distinguish property offers from wanted adverts; a wanted advert cannot count as an available home.
+- Parse the owner's two-bedroom BTR apartment/balcony/parking example across **Oxford OR London OR Manchester OR Leeds**, with a **£1,500/month maximum**. Preserve the stated budget period and hard requirements. Ask about material ambiguity, including budget inclusions and parking costs; do not infer a precise location, all-in budget or feature availability without evidence.
+- Search **LetMallow's own relevant published inventory first**. With own matches, use the primary results area for those adverts; put third-party discovery in a separately labelled, lower-emphasis section. With zero own matches, explain the absence and make external discovery prominent. Apply this per query and current availability, not a global listing-count threshold. Keep external discovery while own supply grows without requiring another platform for internal search.
+- Distinguish actual authorised third-party listing data from an outbound **Search on [provider]** link. A provider search link does not establish a matching home, result count, rent or availability. Never scrape or imply a partnership without permission. An unrelated own advert must not displace relevant fallback information or be presented as a match.
+- Maintain **context from deliberate input**: selected areas, property type, budget scope/period, payment/display preferences and prior corrections. “Leeds only” changes location; “increase to £1,600” changes budget; both retain the other requirements. Show a readable requirement summary with simple correction/reset actions. Ask short questions only when an answer changes the result.
+- Use session context by default. Saving conversation/preferences across sessions is opt-in and removable. Do not infer benefit status, income, politics, health or protected characteristics from housing requests. Enforce permissions before retrieval or generation; exclude private addresses/evidence, pending/withdrawn/expired adverts, inboxes and other users' account data. Any own-account search remains separately authenticated.
+- Rank against explicit housing requirements and verified listing fields. Unknown BTR, balcony, parking or cost data remain unknown, not a satisfied requirement. Explain partial matches separately and offer relaxations without applying them. Never silently raise the budget, widen locations or drop a requirement.
+- Return recognisable content/source types, direct links and useful freshness information. Ground any generated answer in retrieved material. Refresh publication/expiry/withdrawal/deletion access immediately rather than awaiting a scheduled crawl.
+- When a model, external source or quota fails, keep the same entry point and last explicit criteria. Use a bounded deterministic interpreter/direct correction route where it can honour the request; explain unsupported parts and preserve browsable own listings. Do not pretend this degraded route provides the full AI capability. Additional AI preference inference remains off under LM-AI02.
 
-## LM-AI02 — Optional AI-powered auto-filtering
+**Acceptance:** evaluate held-out realistic queries, the exact owner example and paraphrases; multiple alternative places; Welsh/island aliases; follow-up edits and reset; rent-unit/payment-preference handling; unknown or excluded costs/features; some/zero relevant own listings; unrelated, expired, pending and wanted-only records; third-party and model outages; permission boundaries and hostile retrieved text. Check source prominence on Galaxy/Android Chrome, keyboard/scroll behaviour, clear loading/error/empty states and accessible correction controls. Record relevance, hard-constraint violations, source support, response time and actual cost. Set targets from an observed baseline before release; synthetic evaluations do not establish genuine supply or rental outcomes.
 
-- The default is **off** for a new user or missing preference. Show a clearly labelled switch; only an explicit user action enables it. Any remembered setting must reflect that choice and be easy to reset.
-- When enabled, interpret the user's stated housing requirements into visible filters, with a short explanation of each inferred choice. Users can edit, remove, lock or reset every applied filter and disable further automatic changes.
-- Manual overrides take priority over later inference, refreshes and updates from SystemBot#Colin. Do not silently relax a stated budget or location, restore a removed filter or widen a zero-result search.
-- When disabled, ordinary manual filters remain available. Sitewide search may offer a preview of interpreted criteria for the user to apply explicitly; it must not silently apply inferred preferences.
-- Infer housing requirements from deliberate input. Do not infer a person's income, politics or protected characteristics, or use area income/crime/political summaries to silently steer their housing search.
+## LM-AI02 — Optional AI preference suggestions
 
-**Acceptance:** verify first-use off, explicit opt-in, preference reset, visible explanations, conflicting criteria, manual edits/locks, navigation/reload and disabling mid-session. Test that model failure and empty results preserve the user's last explicit settings.
+The 09/11/2026 conversational-search direction supersedes the old traditional filter-panel presentation. Preserve the existing **off by default / opt-in / override** rules for suggestions beyond what the user explicitly requested.
+
+- Applying “two bedrooms, Leeds, up to £1,500” from the user's search is following an explicit instruction. Adding a commute radius, inferred lifestyle preference or other unstated constraint is optional AI inference and must not happen silently.
+- For new users or a missing preference, additional automatic suggestions are off. Offer a clearly labelled optional control; only an explicit action enables it. A remembered choice must be inspectable and easy to reset.
+- Show suggested criteria and why they were suggested. Let users accept, correct, lock, remove or reset them in the requirement summary or conversation, without needing a traditional filter panel.
+- Explicit corrections and locked requirements take priority over inference, reloads and SystemBot#Colin updates. Turning suggestions off or losing the model preserves the user's explicit requirements.
+- Do not infer income, benefit status, politics or protected characteristics, or use area statistics to silently steer housing choices. Do not silently relax constraints or broaden a zero-result search.
+
+**Acceptance:** verify initial off, explicit opt-in, reset, explanations, conflicting criteria, correction/locking, reload and disabling mid-session. Confirm that model failure and empty results preserve explicit requirements and that controls remain usable by touch and keyboard.
 
 ## LM-AI03 — AI-powered customer service
 
@@ -73,7 +82,7 @@ Show **data period**, **last checked** and any stale/unavailable status. A succe
 
 ## Delivery and budget
 
-Proposed sequence: (1) approved-source catalogue and normal sitewide retrieval; (2) evaluated AI search with the opt-in filter controls; (3) bounded customer-service pilot; (4) a sourced Horfield area-guide pilot; (5) SystemBot#Colin refresh validation and gradual England/Wales coverage. Establish the updates registry during source work so the guide pilot can use it. This is a proposed sequence, not a dated commitment.
+Proposed sequence: (1) approved-source catalogue and LM-R16 structured property/cost data; (2) LM-R17 evaluated conversational AI search and optional preference suggestions; (3) bounded customer-service pilot; (4) a sourced Horfield area-guide pilot; (5) SystemBot#Colin refresh validation and gradual England/Wales coverage. Establish the updates registry during source work so the guide pilot can use it. This is a proposed sequence, not a dated commitment.
 
 Use cached, shared evidence and bounded model calls. Check account-level free entitlements, data licences, automation permission, quotas and outage behaviour before selecting a provider. Existing AI subscriptions do not establish application API entitlement. If a capability cannot run within £0, record the gap and obtain a budget decision before enabling costs; do not silently substitute ordinary automation and call it generative AI.
 
