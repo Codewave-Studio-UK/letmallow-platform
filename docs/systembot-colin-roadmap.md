@@ -1,6 +1,6 @@
 # LetMallow — SystemBot#Colin roadmap
 
-**LM-AI05 · Owner-requested system agent · Updated 06/11/2026 · Planned**
+**LM-AI05 · Owner-requested system agent · Updated 09/11/2026 · Planned**
 
 **SystemBot#Colin** is the proposed system agent for scheduled updates across LetMallow. It covers the site's update needs through an explicit inventory of jobs, including the evidence and area profiles used by [AI-powered area information](ai-roadmap.md). It is a future product capability: this document creates no running agent, cron job, subscription or external scheduled task.
 
@@ -72,6 +72,8 @@ Use bounded concurrency, backoff for failures/429s, circuit breakers and dedupli
 Batch and cache shared area data, avoid generating unchanged summaries and prove scheduler/provider free entitlements before activation. Stop optional jobs before they incur new spend. A paid plan change, external message, new data-processing permission or stable deployment needs its own existing authorisation; SystemBot#Colin must not make such decisions autonomously.
 
 ## Delivery and acceptance
+
+**Own dedicated sprint: LM-AI05**, under the [sprint scope rule](../ROADMAP.md#sprint-scope-rule). Do not bundle agent implementation with the area-guide, search, customer-service or preference-suggestion sprints. The steps below and 13 schedule variants are tasks/acceptance within this agent feature; later independent expansions receive their own sprint entries. Dependencies include the approved source inventory, agreed job ownership and verified £0 execution/provider entitlements.
 
 1. Create the inventory and schedule engine with disabled-by-default configuration and deterministic fixture jobs.
 2. Prove every schedule rule using a synthetic clock, including the confirmed twice-per-period “bi-” cadences, London DST changes, short months and leap years.
