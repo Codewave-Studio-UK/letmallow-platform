@@ -1,5 +1,5 @@
 import {places,label,feedback,canonical,money,date,kindNames,findPlace,interpret,match,contactQuestions,contactReplies,plans,limits} from './domain.mjs';
-import {e,icon,card,landing,searchForm} from './shell.mjs';
+import {e,icon,card,landing,logo,searchForm} from './shell.mjs';
 const main=document.querySelector('#content'),dialog=document.querySelector('#panel'),panel=document.querySelector('#panel-body'),notice=document.querySelector('#notice');
 const mirror=document.querySelector('meta[name=rental-host]')?.content==='netlify';
 const state={ads:[],loadError:false,view:'home',session:{signedIn:false,reviewer:false,stripe:false},role:'renter',coupon:null,paidPasses:[]};
@@ -32,19 +32,88 @@ function providerRows(f){
  const types=f.kind==='room'?['rooms']:f.kind==='flat'?['flats']:f.kind==='house'?['houses']:['rooms','flats','houses'];
  return types.map(k=>'<div class="item"><div><small class="eyebrow">'+e(p[k].provider)+'</small><h3>'+({rooms:'Rooms',flats:'Flats',houses:'Houses'}[k])+' in '+e(label(p))+'</h3><p>View the provider’s current adverts'+(p.id==='anglesey'?' in and around Anglesey':'')+'.</p></div>'+external(p[k].url,'View adverts')+'</div>').join('');
 }
-function adRows(ads){if(state.loadError)return '<div class="empty">Community adverts could not load. <button class="link-button" data-refresh>Try again</button></div>';
- return ads.length?ads.map(a=>'<div class="item"><div><small class="eyebrow">'+e(a.nation)+' · '+e(a.area)+'</small><h3>'+e(a.title)+'</h3><p>'+money(a.rent)+' pcm'+(a.kind==='wanted'?' budget':'')+' · '+e(kindNames[a.kind]||a.kind)+'</p></div>'+buttons(a.id,'data-ad','View advert')+'</div>').join(''):'<div class="empty">No approved adverts match here yet. Try a live provider search or post an advert.</div>';}
-function resultPage(view){
- const f=filters();if(view==='wanted')f.kind='wanted';
- if(view==='community')return heading('Community adverts','Residential adverts published here after a studio review.')+'<div class="rows">'+adRows(state.ads)+'</div><button class="btn primary" data-nav="post">Post an advert</button>';
- const display=view==='wanted'?'Wanted ads':f.area?'Rentals in '+f.area:'Search rental adverts';
- return heading(display,view==='wanted'?'Find people looking for a room or a whole home.':'Browse community adverts and open current searches on rental providers.')+searchForm()+'<h2 class="results-head">Live provider searches</h2><p class="muted">Opens the provider’s website. Set your final budget there and check availability with the advertiser.</p><div class="rows">'+providerRows(f)+'</div><h2 class="results-head">Community adverts</h2><div class="rows">'+adRows(state.ads.filter(a=>match(a,f)))+'</div>';
+const advertTypes = { room: 'Room', flat: 'Flat', house: 'House', wanted: 'Wanted advert' };
+const billsText = { Included: 'Bills included', Excluded: 'Bills excluded', 'Part included': 'Some bills included', 'To confirm': 'Bills to confirm' };
+
+function dateMarkup(seconds) {
+ const timestamp = new Date(seconds * 1000).toISOString();
+ return `<time datetime="${timestamp}">${date(seconds)}</time>`;
+}
+
+function adPrice(ad) {
+ return `<p class="ad-price">
+   ${ad.kind === 'wanted' ? '<span class="ad-price-label">Budget</span>' : ''}
+   <strong>${money(ad.rent)}</strong> <span>a month</span>
+ </p>`;
+}
+
+function adFacts(ad) {
+ return `<p class="ad-location">${icon('pin',16)} <span>${e(ad.area)} · ${e(ad.nation)}</span></p>
+   <ul class="ad-facts" aria-label="Advert details">
+     <li>${icon('home',16)} ${e(advertTypes[ad.kind] || ad.kind)}</li>
+     <li>${e(billsText[ad.bills] || 'Bills to confirm')}</li>
+   </ul>`;
+}
+
+function reviewedBadge() {
+ return `<span class="badge audience-badge">${icon('shield',16)} Reviewed by LetMallow</span>`;
+}
+
+function adCards(ads) {
+ if (state.loadError) return '<div class="empty">Community adverts could not load. <button class="link-button" data-refresh>Try again</button></div>';
+ if (!ads.length) return '<div class="empty">No approved adverts match here yet.</div>';
+ return `<div class="ad-grid">${ads.map(ad => `<article class="ad-card">
+   ${ad.kind === 'wanted' ? '' : `<div class="ad-media">${icon('image',24)} <span>No photo supplied</span></div>`}
+   <div class="ad-card-body">
+     ${reviewedBadge()}
+     <div class="ad-title"><h3>${e(ad.title)}</h3>${adPrice(ad)}</div>
+     ${adFacts(ad)}
+     <button class="link-button" data-ad="${e(ad.id)}" aria-label="View advert: ${e(ad.title)}">View advert ${icon('arrow',16)}</button>
+   </div>
+ </article>`).join('')}</div>`;
+}
+
+function resultPage(view) {
+ const f = filters();
+ if (view === 'community') {
+   return `<div class="audience-renter">
+     ${heading('Community adverts','Residential adverts published here after a studio review.')}
+     ${adCards(state.ads)}
+     <div class="section-actions"><button class="btn primary" data-nav="post">${icon('plus',16)} Post an advert</button></div>
+   </div>`;
+ }
+ if (view === 'wanted') f.kind = 'wanted';
+ const ads = state.loadError ? [] : state.ads.filter(a => match(a,f));
+ const rentalTitle = f.kind === 'any' ? 'Rentals' : kindNames[f.kind] + ' to rent';
+ const title = f.kind === 'wanted'
+   ? 'Wanted ads'
+   : f.area ? rentalTitle + ' in ' + f.area : 'Search rental adverts';
+ const description = f.kind === 'wanted' ? 'Find people looking for a room or a whole home.' : '';
+ const community = `<section class="results-section" aria-labelledby="community-results">
+   <div class="results-title">
+     <h2 id="community-results">Community adverts</h2>
+     ${!state.loadError ? `<p class="muted">${ads.length} matching ${ads.length === 1 ? 'advert' : 'adverts'}</p>` : ''}
+   </div>
+   ${adCards(ads)}
+ </section>`;
+ const providers = `<section class="results-section provider-section" aria-labelledby="provider-results">
+   <div class="results-title">
+     <h2 id="provider-results">Live provider searches</h2>
+     <p class="muted">Set your final budget on the provider’s website and check availability with the advertiser.</p>
+   </div>
+   <div class="provider-list">${providerRows(f)}</div>
+ </section>`;
+ return `<div class="audience-renter">
+   ${heading(title,description)}
+   ${searchForm({ compact: true })}
+   ${ads.length ? community + providers : providers + community}
+ </div>`;
 }
 function safePlanState(role){const d=store.read('sim-'+role,{});const verified=state.paidPasses.filter(x=>x.expires>Date.now()/1000);return {plus:!!d.plus||verified.some(x=>x.product===role),used:Math.max(0,Number(d.used)||0),extra:Math.max(verified.some(x=>x.product==='extra')?1:0,Math.min(1,Number(d.extra)||0)),early:!!d.early,wanted:Math.max(0,Number(d.wanted)||0)};}
 function planPage(){
  const role=state.role,l=role==='landlord',s=safePlanState(role),max=limits(role,s.plus),free=l?['One active advert','Basic advert management','Receive enquiries']:['Three standard responses per test period','One wanted advert for 30 days','Basic search and saved areas'];
  const plus=l?['Five active adverts','Advert-level response analytics','An extra advert can be tested separately']:['30 responses per test period','Contact early-access test adverts','Three wanted adverts for 30 days'];
- return heading('Membership plans','Live alpha adverts and enquiries are free. Use the separate simulator to compare proposed 30-day passes.')+'<div class="role-tabs" aria-label="Choose role"><button data-role="renter" aria-pressed="'+!l+'">Renter</button><button data-role="landlord" aria-pressed="'+l+'">Landlord</button></div><div class="split">'+[['Free',0,free,false],[plans[role].name,plans[role].amount/100,plus,true]].map(([t,n,items,isPlus])=>'<article class="box plan"><h3>'+t+'</h3><b>'+money(n)+' <small class="muted">'+(n?'per 30 days · test price':'')+'</small></b><ul>'+items.map(x=>'<li>'+x+'</li>').join('')+'</ul><div class="actions"><button class="btn '+(isPlus?'primary':'outline')+'" data-sim="'+(isPlus?'plus':'free')+'">Try '+t+'</button></div></article>').join('')+'</div><h2 class="results-head">Plan simulator</h2><div class="box stack"><b>'+e(s.plus?plans[role].name:'Free')+' · simulated account</b><p>'+ (l?'Adverts posted: '+s.used+' of '+(max.ads+s.extra)+'.':s.used+' of '+max.responses+' simulated responses used. Wanted adverts: '+s.wanted+' of '+max.wanted+'.')+'</p><div class="actions">'+(l?'<button class="btn outline small" data-sim="use">Post test advert</button><button class="btn outline small" data-sim="extra">Try one extra advert (£3)</button>':'<button class="btn outline small" data-sim="use">Respond to a standard advert</button><button class="btn outline small" data-sim="early">Try early access</button><button class="btn outline small" data-sim="wanted">Post test wanted ad</button>')+'<button class="link-button" data-sim="reset">Reset</button></div>'+(l&&s.plus?'<p>Test analytics · '+s.used+' adverts posted in this simulation.</p>':'')+'</div><div class="box stack payment-box"><h3>Stripe test checkout</h3><p>'+(state.session.stripe?'Test mode is connected. Use Stripe test details only.':'The Stripe sandbox has not been connected. You can try every plan limit above without entering payment details.')+'</p>'+(state.session.stripe?'<div class="actions"><button class="btn outline" data-pay="'+role+'">Open Stripe test checkout</button>'+(l?'<button class="btn outline" data-pay="extra">Test extra advert</button>':'')+'</div>':'')+'</div>';
+ return '<div class="plan-layout audience-'+role+'">'+heading('Membership plans','Live alpha adverts and enquiries are free. Use the separate simulator to compare proposed 30-day passes.')+'<div class="role-tabs" aria-label="Choose role"><button data-role="renter" aria-pressed="'+!l+'">Renter</button><button data-role="landlord" aria-pressed="'+l+'">Landlord</button></div><div class="split">'+[['Free',0,free,false],[plans[role].name,plans[role].amount/100,plus,true]].map(([t,n,items,isPlus])=>'<article class="box plan'+(isPlus?' plan--plus':'')+'"><h3>'+t+'</h3><b>'+money(n)+' <small class="muted">'+(n?'per 30 days · test price':'')+'</small></b><ul>'+items.map(x=>'<li>'+x+'</li>').join('')+'</ul><div class="actions"><button class="btn '+(isPlus?'primary':'outline')+'" data-sim="'+(isPlus?'plus':'free')+'">Try '+t+'</button></div></article>').join('')+'</div><h2 class="results-head">Plan simulator</h2><div class="box stack"><b>'+e(s.plus?plans[role].name:'Free')+' · simulated account</b><p>'+ (l?'Adverts posted: '+s.used+' of '+(max.ads+s.extra)+'.':s.used+' of '+max.responses+' simulated responses used. Wanted adverts: '+s.wanted+' of '+max.wanted+'.')+'</p><div class="actions">'+(l?'<button class="btn outline small" data-sim="use">Post test advert</button><button class="btn outline small" data-sim="extra">Try one extra advert (£3)</button>':'<button class="btn outline small" data-sim="use">Respond to a standard advert</button><button class="btn outline small" data-sim="early">Try early access</button><button class="btn outline small" data-sim="wanted">Post test wanted ad</button>')+'<button class="link-button" data-sim="reset">Reset</button></div>'+(l&&s.plus?'<p>Test analytics · '+s.used+' adverts posted in this simulation.</p>':'')+'</div><div class="box stack payment-box"><h3>Stripe test checkout</h3><p>'+(state.session.stripe?'Test mode is connected. Use Stripe test details only.':'The Stripe sandbox has not been connected. You can try every plan limit above without entering payment details.')+'</p>'+(state.session.stripe?'<div class="actions"><button class="btn outline" data-pay="'+role+'">Open Stripe test checkout</button>'+(l?'<button class="btn outline" data-pay="extra">Test extra advert</button>':'')+'</div>':'')+'</div></div>';
 }
 function privacy(){return heading('Privacy & safety','Codewave Studio operates the LetMallow alpha for residential rentals in England and Wales.')+`<div class="stack"><section class="box"><h3>Browsing and smart search</h3><p>Search terms are interpreted on your device. A standard search puts the town, home type and budget in the page URL. Avoid entering an address or personal circumstances. Saved areas and the plan simulator use this browser’s local storage. You can remove them in Saved or reset the simulator.</p></section><section class="box"><h3>Adverts, enquiries and account data</h3><p>Signing in supplies an account identifier and email from ChatGPT. The service uses the identifier for advert ownership, your inbox and access control. The email is used for the authorised reviewer check. Advert text becomes public only after review. Private evidence links stay in the review queue. When replying, you can choose to share your sign-in email with that enquirer to arrange a viewing. Replying again without the tick removes the address from their inbox. They may already have copied it. Use a town or island rather than an exact address.</p><p>We process account records to provide the service you request and carry out safety checks in the legitimate interests of users and the studio. Adverts are listed for up to 30 days from submission. Public results exclude expired adverts immediately. Expired records become eligible for removal after a further 30 days and enquiries after 60 days. Housekeeping runs on subsequent submissions. Withdrawal removes an advert and its enquiries. You can erase your platform records in Your account.</p></section><section class="box"><h3>Providers and your choices</h3><p>Sites hosts the account service and its interim database. The Netlify edition uses the same account service. External search providers operate the pages you open. Tally processes feedback or reports you choose to submit. Stripe only receives a checkout request when a connected sandbox is used. No advert text is sent to an AI provider.</p><p>For access, correction, removal, restriction, objection or questions about transfers and safeguards, contact Codewave Studio through the feedback form. You can also complain to the UK Information Commissioner. Avoid sending identity documents or bank details.</p><div class="actions">${external(feedback,'Contact the studio')}${external('https://ico.org.uk/make-a-complaint/','ICO complaints')}</div></section><section class="box"><h3>Report a concern</h3><p>Report suspicious adverts with their reference. The studio can remove an advert during investigation. Confirm the advertiser’s authority and view the home before sending money. LetMallow does not collect rent, deposits or holding payments.</p>${external(feedback,'Report an advert')}</section></div>`;}
 function reflectNav(view){document.querySelectorAll('header nav [data-nav]').forEach(b=>{const on=b.dataset.nav===view||(b.dataset.nav==='home'&&['areas','search','community'].includes(view));b.classList.toggle('current',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});}
@@ -62,20 +131,135 @@ function render(){
  main.innerHTML=html;reflectSaved();reflectNav(view);if(view==='search'||view==='wanted')setFields({...filters(),...(view==='wanted'?{kind:'wanted'}:{})});
 }
 function signIn(view){const path=urlFor(view);const destination=mirror?canonical+path:'/signin-with-chatgpt?return_to='+encodeURIComponent(path);
- return '<div class="box stack"><h3>'+(mirror?'Open your LetMallow account':'Sign in to your account')+'</h3><p>Browsing is open to everyone. Sign in with ChatGPT to post, withdraw an advert or exchange enquiries.</p><div><a class="btn primary" target="_top" href="'+e(destination)+'">'+(mirror?'Continue to account service':'Sign in with ChatGPT')+' '+icon('arrow',16)+'</a></div></div>';}
+ return '<div class="box stack sign-in-card"><div class="section-icon">'+icon('user',24)+'</div><h2>'+(mirror?'Open your LetMallow account':'Sign in to your account')+'</h2><p>Browsing is open to everyone. Sign in with ChatGPT to post, withdraw an advert or exchange enquiries.</p><div><a class="btn primary" target="_top" href="'+e(destination)+'">'+(mirror?'Continue to account service':'Sign in with ChatGPT')+' '+icon('arrow',16)+'</a></div></div>';}
 function postPage(){if(!state.session.signedIn)return heading('Post an advert','One home advert and one 30-day wanted advert are available per account during the free alpha.')+signIn('post');
- return heading('Post an advert','We review adverts before they appear. Use a town or neighbourhood and keep personal details out of the public text.')+`<form id="ad-form" class="form entry"><div class="split"><label>Advert type<select name="kind"><option value="room">Room to rent</option><option value="flat">Flat to rent</option><option value="house">House to rent</option><option value="wanted">Room or property wanted</option></select></label><label>Nation<select name="nation"><option>England</option><option>Wales</option></select></label></div><label>Town, neighbourhood or island<input required name="area" minlength="2" maxlength="80" placeholder="e.g. Beaumaris, Anglesey"></label><div class="split"><label>Monthly rent or wanted budget (£)<input required type="number" min="1" max="100000" name="rent" inputmode="numeric"></label><label>Bills<select name="bills">${opts(['Included','Excluded','Part included','To confirm'])}</select></label></div><label>Advert title<input required name="title" minlength="5" maxlength="90" placeholder="e.g. Double room in central Cardiff"></label><label>Description<textarea required name="body" minlength="25" maxlength="1200" placeholder="Describe the home, rent, bills and terms that matter to a renter."></textarea></label><button class="link-button" type="button" data-draft>Build a draft from these fields ${icon('spark',16)}</button><label>Existing public advert link (optional, for review)<input type="url" name="proof" maxlength="690" placeholder="https://"><span class="muted">SpareRoom, OpenRent, Rightmove, Zoopla or OnTheMarket. The studio may need further evidence before publication.</span></label><label class="check"><input required type="checkbox" name="authority">I authorise publication of this advert. I own or represent the offer, or I am the person looking for a home. The information is accurate.</label><p class="muted">Every advert expires after 30 days. For Welsh offers the reviewer checks applicable Rent Smart Wales registration and licensing or the relevant exemption. <button type="button" class="link-button" data-nav="privacy">Privacy &amp; safety</button></p><button class="btn primary" type="submit">Submit for review</button><p class="error" role="alert"></p></form>`;}
-async function loadAccount(view,id){
- try{const out=await api(view==='review'?'queue':'account');if(id!==renderID)return;
- if(view==='review'){
- main.innerHTML=heading('Review adverts','Verify advertiser authority, nation and material terms. For Welsh offers check registration/licensing or the applicable exemption. Record the evidence in the studio review process. Only approve complete adverts.')+'<div class="rows">'+(out.ads.map(a=>'<div class="box stack"><h3>'+e(a.title)+'</h3><p>'+e(a.area)+' · '+e(a.nation)+' · '+money(a.rent)+' pcm · '+e(a.bills)+' bills</p><p class="adtext">'+e(a.body)+'</p><p class="muted">Ref '+e(a.id)+' · '+e(a.status)+'</p>'+(a.proof?external(a.proof,'Private evidence link'):'<p>Further authority checks needed if evidence is missing.</p>')+'<div class="actions">'+(a.status==='live'?buttons(a.id,'data-unpublish','Unpublish'):buttons(a.id,'data-approve','Review for approval','primary')+buttons(a.id,'data-reject','Reject'))+'</div></div>').join('')||'<div class="empty">The queue is empty.</div>')+'</div>';return;}
- const message=(m,canReply)=>'<div class="box stack"><h3>'+e(m.title)+'</h3><p>'+e(m.question)+'</p><b>'+e(m.answer||'Awaiting a reply')+'</b>'+(m.contact?(canReply?'<small>You shared your email with this enquirer.</small>':'<p>Contact the advertiser at <a href="mailto:'+e(encodeURIComponent(m.contact))+'">'+e(m.contact)+'</a>.</p>'):'')+(canReply?buttons(m.id,'data-answer','Reply'):'')+'</div>';
- main.innerHTML=heading('Your account','Manage your adverts and check the inbox for replies.')+'<div class="actions"><button class="btn primary" data-nav="post">Post an advert</button>'+(out.reviewer?'<button class="btn outline" data-nav="review">Review adverts</button>':'')+'<a class="link-button" target="_top" href="/signout-with-chatgpt?return_to=%2F">Sign out</a></div><h2 class="results-head">Your adverts</h2><div class="rows">'+(out.ads.map(a=>'<div class="item"><div><small class="badge">'+e(a.expires<=Date.now()/1000?'expired':a.status)+'</small><h3>'+e(a.title)+'</h3><p>Expires '+date(a.expires)+' · '+e(a.area)+'</p></div>'+buttons(a.id,'data-withdraw','Withdraw')+'</div>').join('')||'<p class="empty">Your submitted adverts will appear here.</p>')+'</div><h2 class="results-head">Received enquiries</h2><div class="rows">'+(out.inbox.map(m=>message(m,true)).join('')||'<p class="empty">No enquiries yet.</p>')+'</div><h2 class="results-head">Sent enquiries</h2><div class="rows">'+(out.sent.map(m=>message(m,false)).join('')||'<p class="empty">No enquiries sent.</p>')+'</div>'+(out.passes.length?'<h2 class="results-head">Stripe test passes</h2>'+out.passes.map(p=>'<p>'+e(plans[p.product]?.name)+' · expires '+date(p.expires)+'</p>').join(''):'')+'<button class="link-button" data-erase>Erase my platform records</button>';
- }catch(err){if(id===renderID)main.innerHTML=heading('Your account')+'<div class="empty">'+e(err.message)+' <button class="link-button" data-refresh>Retry</button></div>';}}
-function details(id){
- const a=state.ads.find(x=>x.id===id);if(!a)return heading('Advert unavailable','This advert may have expired or been withdrawn.')+'<button class="btn outline" data-nav="community">Browse community adverts</button>';
- const dest=mirror?canonical+urlFor('advert',{id:a.id}):'/signin-with-chatgpt?return_to='+encodeURIComponent(urlFor('advert',{id:a.id}));
- return heading(a.title,a.area+' · '+a.nation)+'<div class="box stack"><strong>'+money(a.rent)+' pcm'+(a.kind==='wanted'?' budget':'')+'</strong><p>Bills: '+e(a.bills)+' · '+e(kindNames[a.kind])+' · Expires '+date(a.expires)+'</p><p class="adtext">'+e(a.body)+'</p><small>Advert reference '+e(a.id)+'</small><div class="actions">'+(state.session.signedIn?buttons(a.id,'data-enquire','Send a free enquiry','primary'):'<a class="btn primary" target="_top" href="'+e(dest)+'">Sign in to enquire for free</a>')+external(feedback,'Report this advert')+'</div></div>';
+ return heading('Post an advert','We review adverts before they appear. Use a town or neighbourhood and keep personal details out of the public text.')+`<form id="ad-form" class="form entry box"><div class="split"><label>Advert type<select name="kind"><option value="room">Room to rent</option><option value="flat">Flat to rent</option><option value="house">House to rent</option><option value="wanted">Room or property wanted</option></select></label><label>Nation<select name="nation"><option>England</option><option>Wales</option></select></label></div><label>Town, neighbourhood or island<input required name="area" minlength="2" maxlength="80" placeholder="e.g. Beaumaris, Anglesey"></label><div class="split"><label>Monthly rent or wanted budget (£)<input required type="number" min="1" max="100000" name="rent" inputmode="numeric"></label><label>Bills<select name="bills">${opts(['Included','Excluded','Part included','To confirm'])}</select></label></div><label>Advert title<input required name="title" minlength="5" maxlength="90" placeholder="e.g. Double room in central Cardiff"></label><label>Description<textarea required name="body" minlength="25" maxlength="1200" placeholder="Describe the home, rent, bills and terms that matter to a renter."></textarea></label><button class="link-button" type="button" data-draft>Build a draft from these fields ${icon('spark',16)}</button><label>Existing public advert link (optional, for review)<input type="url" name="proof" maxlength="690" placeholder="https://"><span class="muted">SpareRoom, OpenRent, Rightmove, Zoopla or OnTheMarket. The studio may need further evidence before publication.</span></label><label class="check"><input required type="checkbox" name="authority">I authorise publication of this advert. I own or represent the offer, or I am the person looking for a home. The information is accurate.</label><p class="muted">Every advert expires after 30 days. For Welsh offers the reviewer checks applicable Rent Smart Wales registration and licensing or the relevant exemption. <button type="button" class="link-button" data-nav="privacy">Privacy &amp; safety</button></p><button class="btn primary" type="submit">Submit for review</button><p class="error" role="alert"></p></form>`;}
+const accountLinks = [
+ ['account-adverts', 'home', 'Your adverts'],
+ ['account-received', 'message', 'Received enquiries'],
+ ['account-sent', 'send', 'Sent enquiries'],
+];
+const testPassesLink = ['account-passes', 'ticket', 'Stripe test passes'];
+const advertStates = { pending: 'Pending review', live: 'Live', rejected: 'Removed from publication', expired: 'Expired' };
+
+function advertState(ad) {
+ const status = ad.expires <= Date.now() / 1000 ? 'expired' : ad.status;
+ return `<span class="badge" data-status="${e(status)}">${e(advertStates[status] || status)}</span>`;
+}
+
+function messageRow(message, canReply) {
+ const reply = message.answer || 'Awaiting a reply';
+ const contact = message.contact
+   ? canReply
+     ? '<p class="muted">You shared your email with this enquirer.</p>'
+     : `<p>Contact the advertiser at <a href="mailto:${e(encodeURIComponent(message.contact))}">${e(message.contact)}</a>.</p>`
+   : '';
+ return `<li class="workspace-row">
+   <span class="section-icon">${icon(canReply ? 'message' : 'send',20)}</span>
+   <div class="workspace-copy">
+     <h3>${e(message.title)}</h3>
+     <p>${e(message.question)}</p>
+     <p class="message-reply">${e(reply)}</p>
+     ${contact}
+   </div>
+   ${canReply ? buttons(message.id,'data-answer','Reply') : ''}
+ </li>`;
+}
+
+function workspaceSection([id, symbol, title], audience, rows, empty) {
+ return `<section class="workspace-section audience-${audience}" aria-labelledby="${id}">
+   <h2 id="${id}" tabindex="-1">${icon(symbol,20)} ${title}</h2>
+   ${rows.length ? `<ul class="workspace-list">${rows.join('')}</ul>` : `<p class="empty">${empty}</p>`}
+ </section>`;
+}
+
+function accountPage(out) {
+ const links = out.passes.length ? [...accountLinks, testPassesLink] : accountLinks;
+ return `<div class="account-layout">
+   <aside class="account-sidebar">
+     <a class="brand" href="/" aria-label="LetMallow home">${logo}</a>
+     <nav aria-label="Account sections">
+       ${links.map(([id,symbol,title],index) => `<button type="button" data-account-section="${id}"${index === 0 ? ' aria-current="location"' : ''}>${icon(symbol,20)} ${title}</button>`).join('')}
+     </nav>
+     <a class="link-button" target="_top" href="/signout-with-chatgpt?return_to=%2F">Sign out</a>
+   </aside>
+   <div class="account-content">
+     ${heading('Your account','Manage your adverts and check the inbox for replies.')}
+     <div class="actions">
+       <button class="btn primary" data-nav="post">${icon('plus',16)} Post an advert</button>
+       ${out.reviewer ? '<button class="btn outline" data-nav="review">Review adverts</button>' : ''}
+     </div>
+     ${workspaceSection(accountLinks[0],'landlord',out.ads.map(ad => `<li class="workspace-row">
+       <span class="section-icon">${icon('home',20)}</span>
+       <div class="workspace-copy">
+         <h3>${e(ad.title)}</h3>
+         <p>Expires ${dateMarkup(ad.expires)} · ${e(ad.area)}</p>
+         ${advertState(ad)}
+       </div>
+       ${buttons(ad.id,'data-withdraw','Withdraw')}
+     </li>`),'Your submitted adverts will appear here.')}
+     ${workspaceSection(accountLinks[1],'landlord',out.inbox.map(m => messageRow(m,true)),'No enquiries yet.')}
+     ${workspaceSection(accountLinks[2],'renter',out.sent.map(m => messageRow(m,false)),'No enquiries sent.')}
+     ${out.passes.length ? workspaceSection(testPassesLink,'renter',out.passes.map(pass => `<li class="workspace-row">
+       <span class="section-icon">${icon('ticket',20)}</span>
+       <div class="workspace-copy"><h3>${e(plans[pass.product]?.name)}</h3><p>Expires ${dateMarkup(pass.expires)}</p></div>
+     </li>`),'') : ''}
+     <button class="link-button" data-erase>Erase my platform records</button>
+   </div>
+ </div>`;
+}
+
+function reviewPage(ads) {
+ const cards = ads.map(ad => `<article class="box stack">
+   ${advertState(ad)}
+   <div class="ad-title"><h3>${e(ad.title)}</h3>${adPrice(ad)}</div>
+   ${adFacts(ad)}
+   <p class="adtext">${e(ad.body)}</p>
+   <p class="muted">Advert reference ${e(ad.id)}</p>
+   ${ad.proof ? external(ad.proof,'Private evidence link') : '<p>Further authority checks needed if evidence is missing.</p>'}
+   <div class="actions">${ad.status === 'live'
+     ? buttons(ad.id,'data-unpublish','Unpublish')
+     : buttons(ad.id,'data-approve','Review for approval','primary') + buttons(ad.id,'data-reject','Reject')}</div>
+ </article>`).join('');
+ return heading('Review adverts','Verify advertiser authority, nation and material terms. For Welsh offers check registration/licensing or the applicable exemption. Record the evidence in the studio review process. Only approve complete adverts.')
+   + `<div class="rows">${cards || '<p class="empty">The queue is empty.</p>'}</div>`;
+}
+
+async function loadAccount(view,id) {
+ const isReview = view === 'review';
+ try {
+   const out = await api(isReview ? 'queue' : 'account');
+   if (id !== renderID) return;
+   main.innerHTML = isReview ? reviewPage(out.ads) : accountPage(out);
+ } catch (err) {
+   if (id !== renderID) return;
+   main.innerHTML = heading(isReview ? 'Review adverts' : 'Your account')
+     + `<div class="empty">${e(err.message)} <button class="link-button" data-refresh>Try again</button></div>`;
+ }
+}
+
+function details(id) {
+ const ad = state.ads.find(item => item.id === id);
+ if (!ad) return heading('Advert unavailable','This advert may have expired or been withdrawn.')
+   + '<button class="btn outline" data-nav="community">Browse community adverts</button>';
+ const path = urlFor('advert',{id:ad.id});
+ const dest = mirror ? canonical + path : '/signin-with-chatgpt?return_to=' + encodeURIComponent(path);
+ return `<div class="audience-renter">
+   ${heading(ad.title)}
+   <article class="box stack advert-detail">
+     ${reviewedBadge()}
+     ${adPrice(ad)}
+     ${adFacts(ad)}
+     <p class="adtext">${e(ad.body)}</p>
+     <p class="muted">Advert reference ${e(ad.id)} · Expires ${dateMarkup(ad.expires)}</p>
+     <div class="actions">
+       ${state.session.signedIn
+         ? buttons(ad.id,'data-enquire','Send a free enquiry','primary')
+         : `<a class="btn primary" target="_top" href="${e(dest)}">Sign in to enquire for free</a>`}
+       ${external(feedback,'Report this advert')}
+     </div>
+   </article>
+ </div>`;
 }
 function openSmart(){modal('Describe your search','<p>Write the place, home type and maximum rent. The on-device model suggests a type and lets you edit the filters.</p><form class="form" id="smart-form"><label>What are you looking for?<textarea required name="query" maxlength="200" placeholder="A room in Cardiff under £750 per month"></textarea></label><div class="actions"><button type="button" class="link-button" data-example>Use an example</button></div><button class="btn primary">Suggest filters</button></form>');}
 function formAction(title,desc,op,data){
@@ -99,6 +283,17 @@ document.addEventListener('click',async ev=>{
  const b=ev.target.closest('button,[data-nav]');if(!b)return;const d=b.dataset;
  if('close' in d){leave();return;}
  if(d.nav){if(d.nav==='smart'){openSmart();return;}if(d.nav==='menu'){modal('Navigation','<div class="panel-menu">'+[['home','Explore'],['areas','All areas'],['wanted','Wanted ads'],['post','Post an advert'],['saved','Saved areas'],['plans','Plans'],['account','Your account']].map(([k,v])=>'<button data-nav="'+k+'">'+v+'</button>').join('')+'</div>');return;}go(d.nav);return;}
+ if(d.accountSection) {
+   const heading = document.getElementById(d.accountSection);
+   if (heading) {
+     const current = b.closest('nav').querySelector('[aria-current]');
+     current?.removeAttribute('aria-current');
+     b.setAttribute('aria-current','location');
+     heading.focus({ preventScroll: true });
+     heading.scrollIntoView({ block: 'nearest' });
+   }
+   return;
+ }
  if(d.place){const p=places.find(x=>x.id===d.place);if(p)go('search',{area:label(p)});return;}
  if(d.save){const on=saved.includes(d.save);saved=on?saved.filter(x=>x!==d.save):[...saved,d.save];const persisted=store.write('places',saved);if(state.view==='saved')render();else reflectSaved();say((on?'Area removed.':'Area saved.')+(persisted?'':' This session only.'));return;}
  if(d.role){state.role=d.role;render();return;}if(d.sim){simulation(d.sim);return;}

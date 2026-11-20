@@ -1,15 +1,24 @@
-import {places,label,brand,feedback} from './domain.mjs';
+import {places,label,brand,feedback,money} from './domain.mjs';
 import {icon} from './icons.mjs';
 
 export {icon} from './icons.mjs';
 export const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const logo = `<picture>
+export const logo = `<picture>
   <source media="(prefers-color-scheme: dark)" srcset="/market/brand/letmallow-lockup-dark-bg.svg">
   <img src="/market/brand/letmallow-lockup.svg" alt="LetMallow" width="318" height="75">
 </picture>`;
 
 export const card=p=>`<article class="place-card"><button class="place-image" data-place="${p.id}" aria-label="Find rentals in ${e(label(p))}"><img src="/market/places/${p.image}" alt="${e(p.alt)}" width="800" height="600" loading="lazy"></button><button class="save-place" data-save="${p.id}" aria-label="Save ${e(label(p))}" aria-pressed="false">${icon('heart',16)}</button><button class="place-caption" data-place="${p.id}"><span><small>${p.nation}</small><strong>${e(label(p))}</strong></span><span class="round-arrow">${icon('arrow',16)}</span></button></article>`;
-export function searchForm(){return `<form class="search-form" id="search-form"><label class="search-field location">${icon('pin')}<span><b>Location</b><input id="search-area" name="area" maxlength="80" placeholder="Town, city or island" list="towns" autocomplete="off"></span></label><datalist id="towns">${places.map(p=>'<option value="'+label(p)+'">').join('')}<option value="Isles of Scilly"><option value="Swansea"></datalist><label class="search-field">${icon('home')}<span><b>Property type</b><select name="kind"><option value="any">All properties</option><option value="room">Rooms</option><option value="flat">Flats</option><option value="house">Houses</option><option value="wanted">Wanted ads</option></select></span>${icon('down',16)}</label><label class="search-field">${icon('wallet')}<span><b>Monthly budget</b><select name="max"><option value="">Any budget</option>${[500,750,1000,1250,1500,2000,2500,3000].map(n=>'<option value="'+n+'">Up to £'+n.toLocaleString('en-GB')+'</option>').join('')}</select></span>${icon('down',16)}</label><button type="submit" class="btn primary">${icon('search')} Search</button></form>`;}
+export function searchForm({ compact = false } = {}) {
+  const budgets = [500, 750, 1000, 1250, 1500, 2000, 2500, 3000];
+  return `<form class="search-form${compact ? ' search-form--compact' : ''}" id="search-form" aria-label="Rental search">
+    <label class="search-field location">${icon('pin')}<span><b>Location</b><input id="search-area" name="area" maxlength="80" placeholder="Town, city or island" list="towns" autocomplete="off"></span></label>
+    <datalist id="towns">${places.map(p => '<option value="' + e(label(p)) + '">').join('')}<option value="Isles of Scilly"><option value="Swansea"></datalist>
+    <label class="search-field search-filter">${icon('home')}<span><b>Property type</b><select name="kind"><option value="any">All properties</option><option value="room">Rooms</option><option value="flat">Flats</option><option value="house">Houses</option><option value="wanted">Wanted ads</option></select></span>${icon('down',16)}</label>
+    <label class="search-field search-filter">${icon('wallet')}<span><b>Monthly budget</b><select name="max"><option value="">Any budget</option>${budgets.map(n => '<option value="' + n + '">Up to ' + money(n) + '</option>').join('')}</select></span>${icon('down',16)}</label>
+    <button type="submit" class="btn primary">${icon('search')} Search</button>
+  </form>`;
+}
 export function landing() {
   return `<section class="hero">
     <div class="hero-text">
