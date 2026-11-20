@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'LetMallow | Rooms and homes to rent in England and Wales',
   description: 'Search residential rentals across England and Wales, including islands. Advertise a home or post a wanted advert.',
-  icons: { icon: '/favicon.svg' },
+  icons: { icon: '/favicon.svg?v=marshmallow' },
   robots: { index: false, follow: false },
   referrer: 'no-referrer',
 };
