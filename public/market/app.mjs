@@ -134,7 +134,7 @@ function matchingAdverts(view) {
 
 function adRows(ads) {
   if (state.adsLoading) return '<p class="empty" role="status">Loading community adverts…</p>';
-  if (state.loadError) return '<div class="empty" role="alert">We couldn’t load community adverts. <button class="link-button" data-refresh>Try again</button></div>';
+ if (state.loadError) return '<div class="empty" role="alert">We couldn’t load community adverts. <button class="link-button" data-refresh-ads>Try again</button></div>';
   if (!ads.length) return '<p class="empty">No community adverts match your search yet.</p>';
   return ads.map(ad => resultCard({
     title: ad.title, label: ad.area + ' · ' + (kindNames[ad.kind] || 'Advert'), location: true,
@@ -242,7 +242,11 @@ function render(){
  else if(view==='privacy')html=privacy();
  else if(view==='advert')html=details(new URLSearchParams(location.search).get('id'));
  else if(view==='post')html=postPage();
- else if(view==='account'||view==='review'){html=heading(view==='review'?'Review adverts':'Your account')+(state.session.signedIn?'<p class="empty" role="status">Loading your account…</p>':signIn(view));if(state.session.signedIn)loadAccount(view,id);}
+ else if(view==='account'||view==='review'){
+   const accountReady = state.session.signedIn && !state.sessionLoading;
+   html=heading(view==='review'?'Review adverts':'Your account')+(accountReady?'<p class="empty" role="status">Loading your account…</p>':signIn(view));
+   if(accountReady)loadAccount(view,id);
+ }
  else if (id === 1 && main.firstElementChild) html = null;
  else html = landing();
  rentalMap?.destroy();
@@ -361,16 +365,15 @@ document.addEventListener('click',async ev=>{
  if(d.save){const on=saved.includes(d.save);saved=on?saved.filter(x=>x!==d.save):[...saved,d.save];const persisted=store.write('places',saved);if(state.view==='saved')render();else reflectSaved();say((on?'Area removed.':'Area saved.')+(persisted?'':' This change lasts until you close the page.'));return;}
  if(d.role){state.role=d.role;render();return;}if(d.sim){simulation(d.sim);return;}
  if('example' in d){panel.querySelector('textarea').value='A flat in Cardiff for up to £1,000 a month';panel.querySelector('textarea').focus();return;}
+ if ('refreshAds' in d) {
+   adsRequest = loadAds().then(refreshResults);
+   refreshResults();
+   return;
+ }
  if ('refresh' in d) {
-   if (browseViews.includes(state.view)) {
-     adsRequest = loadAds().then(refreshResults);
-     refreshResults();
-     return;
-   }
-   adsRequest = loadAds();
-   sessionRequest = loadSession();
-   render();
-   await Promise.all([adsRequest, sessionRequest]);
+   sessionRequest = loadSession().then(() => {
+     if (sessionViews.includes(state.view)) render();
+   });
    render();
    return;
  }
