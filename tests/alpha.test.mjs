@@ -30,3 +30,18 @@ test('signed test checkout reconciles a fixed amount and webhook replay once',as
  assert.equal(await signer(event,now,true),400);assert.equal(await signer(event,now-400),400);assert.equal(await signer({...event,livemode:true}),400);assert.equal(await signer(event),200);assert.equal(await signer(event),200);assert.equal((await x.call('account',renter))[1].passes.length,1);event.data.object.amount_total=1;assert.equal(await signer(event),400);});
 test('smart search, Welsh place names, budgets, unknown terms and licence links',()=>{assert.deepEqual(interpret('A flat in Cardiff under £1,000'),{area:'Cardiff',kind:'flat',max:1000});assert.equal(interpret('A room in London under £150 pw').max,650);assert.equal(interpret('studio in Swansea under £1.2k').area,'Swansea');assert.equal(findPlace('Ynys Môn').id,'anglesey');assert.equal(interpret('trees').kind,'any');assert(match(fixture,{area:'Cardiff',kind:'room',max:750}));assert(!match(fixture,{area:'Bristol',kind:'room',max:900}));assert.equal(places.length,6);assert.equal(limits('landlord',false).ads,1);assert(limits('renter',true).responses>limits('renter',false).responses);});
 test('Neon adapter parameterises statements and keeps credentials server-side',async()=>{let captured;const db=neonStore('postgresql://demo:example@ep-test.eu-west-2.aws.neon.tech/demo',async(url,init)=>{captured=[url,JSON.parse(init.body)];return Response.json({rows:[{id:'ok'}],rowCount:1});});assert.deepEqual(await db.rows('SELECT id FROM ads WHERE id=?',['one']),[{id:'ok'}]);assert.equal(captured[0],'https://api.eu-west-2.aws.neon.tech/sql');assert.equal(captured[1].query,'SELECT id FROM ads WHERE id=$1');assert.throws(()=>neonStore('postgresql://u:p@invalid.example/test'));});
+test('smart search preserves explicit home types and does not guess between alternatives', () => {
+  assert.deepEqual(interpret('A house in Ynys Môn for up to £1,000'), {
+    area: 'Anglesey', kind: 'house', max: 1000,
+  });
+  for (const phrase of ['A two-bed house near Bristol', 'A house with a flat garden']) {
+    assert.equal(interpret(phrase).kind, 'house', phrase);
+  }
+  for (const phrase of ['A house share in Bristol', 'A room in a shared house in Cardiff', 'A flatshare in London']) {
+    assert.equal(interpret(phrase).kind, 'room', phrase);
+  }
+  assert.equal(interpret('A studio in Swansea').kind, 'flat');
+  for (const phrase of ['A flat or house in Cardiff', 'A house or a flatshare in Bristol']) {
+    assert.equal(interpret(phrase).kind, 'any', phrase);
+  }
+});

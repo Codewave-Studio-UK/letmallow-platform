@@ -13,6 +13,16 @@ for(const [label,examples] of Object.entries(modelExamples)){
   model[label]={counts,total};
 }
 export function inferType(text){
+ const intent = normalise(text).split(/\b(?:in|near|with|without|under|below|up to)\b/, 1)[0];
+ const homeTypes = intent.replace(/\b(?:(?:house|flat) ?share|shared (?:house|flat))s?\b/g, 'room');
+ const mentioned = [
+  ['room', /\brooms?\b/],
+  ['flat', /\b(?:flats?|apartments?|studios?|maisonettes?)\b/],
+  ['house', /\b(?:houses?|townhouses?|bungalows?|cottages?)\b/],
+ ].filter(([, pattern]) => pattern.test(homeTypes));
+ if (mentioned.length > 1) return 'any';
+ if (mentioned.length === 1) return mentioned[0][0];
+
  const words=tokens(text).filter(w=>vocabulary.has(w));
  if(!words.length)return 'any';
  const ranked=Object.entries(model).map(([k,m])=>[k,words.reduce((s,w)=>s+Math.log(((m.counts.get(w)||0)+1)/(m.total+vocabulary.size)),0)]).sort((a,b)=>b[1]-a[1]);
