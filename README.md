@@ -2,7 +2,7 @@
 
 Residential rental alpha for England and Wales, including islands, by Codewave Studio. LetMallow is the selected project name; commercial trade mark clearance remains outstanding. Visitors can explore current third-party rental searches immediately. Authorised first-party adverts appear only after studio review.
 
-[Canonical GitHub repository](https://github.com/Codewave-Studio-UK/letmallow-platform) · [Project status and next steps](docs/project-status.md) · [Open the alpha](https://codewave-rental-alpha.hollowcarat.chatgpt.site) · [Feedback and reports](https://tally.so/r/8NzzzY) · [Delivery specification](docs/alpha-specification.md) · [Name checks](docs/research/brand-screen.md)
+[Canonical GitHub repository](https://github.com/Codewave-Studio-UK/letmallow-platform) · [Project status and next steps](docs/project-status.md) · [06/11/2026 delivery evidence](docs/alpha-increment-2026-11-06.md) · [Open the alpha](https://cws-demo-letmallow-alpha.hollowcarat.chatgpt.site) · [Feedback and reports](https://tally.so/r/8NzzzY) · [Delivery specification](docs/alpha-specification.md) · [Name checks](docs/research/brand-screen.md)
 
 ## Running the project
 
@@ -13,7 +13,11 @@ node --test tests/*.test.mjs
 node scripts/build-netlify.mjs
 ```
 
-The second command produces `netlify-dist/`. It contains the public search, local preference model, fonts, photos and routing configuration. Serve that directory at the web root. Netlify proxies only public community adverts. Signed-in actions run on the canonical Sites origin. Only that origin trusts the platform's authenticated identity headers.
+The second command produces `netlify-dist/`. It contains the public search, local preference model, fonts, photos and routing configuration. Serve that directory at the web root. Netlify proxies only public community adverts. Signed-in actions run on the canonical Sites origin. Only that origin trusts the platform's authenticated identity headers. Netlify's project metadata does not establish a working public deployment; see the current delivery evidence.
+
+## App versioning
+
+Use the version in [package.json](package.json) to identify the app build. During the `0.1.0` alpha, advance the numeric suffix for each sprint that delivers a new app build. Record the version in the sprint specification and its pull request.
 
 ## Hosting and operating the alpha
 
@@ -42,4 +46,4 @@ Membership simulations and paid test passes never grant housing access or restri
 
 ## Assets
 
-[Location photographs and source checks](docs/research/places.md) · [Interior photography](docs/research/interiors.md). DM Sans and Newsreader are self-hosted Google Fonts. Their SIL Open Font licences accompany the assets. No competitor adverts, images, logos, layout code or marketing copy are reproduced.
+[Location photographs and source checks](docs/research/places.md) · [Interior photography](docs/research/interiors.md). Nunito is self-hosted and uses the SIL Open Font License bundled with the font. No competitor adverts, images, logos, layout code or marketing copy are reproduced.

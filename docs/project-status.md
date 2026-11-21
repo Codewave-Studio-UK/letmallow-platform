@@ -1,6 +1,6 @@
 # LetMallow — alpha project status
 
-Updated: **06/11/2026**. This is a delivery checkpoint, not a stable-release approval.
+Source-import checkpoint: **06/11/2026**. See the [later alpha increment evidence](alpha-increment-2026-11-06.md) for subsequent runtime observations and checks. This is a delivery checkpoint, not a stable-release approval.
 
 ## Product baseline
 
