@@ -21,13 +21,12 @@ export function searchForm({ compact = false } = {}) {
 }
 export function landing() {
   return `<section class="hero">
+    <img class="hero-image" src="/market/brand/bedroom.webp" width="1200" height="675" alt="A bright double bedroom with a grey headboard, green throw and a window onto the garden" fetchpriority="high">
     <div class="hero-text">
-      <span class="geo">${icon('pin',16)} England and Wales</span>
       <h1>Find a place that feels like home.</h1>
-      <p>Find rooms, flats and houses to rent, from city neighbourhoods to island communities.</p>
-      <button class="smart" data-nav="smart">${icon('spark')} Try smart search ${icon('arrow',16)}</button>
+      <p>Rooms, flats and houses to rent across England and Wales, from city neighbourhoods to island communities.</p>
+      <button class="smart" type="button" data-nav="smart">Try smart search</button>
     </div>
-    <img class="hero-image" src="/market/brand/bedroom.webp" width="1200" height="675" alt="" fetchpriority="high">
   </section>
   <div class="search-wrap">${searchForm()}</div>
   <section class="explore">
