@@ -195,7 +195,7 @@ main, footer > div { width: var(--content-width); margin-inline: auto; }
 }
 @media (min-width: 768px) {
   .nav-wrap { width: min(1440px, 100% - 3rem); grid-template-columns: auto minmax(0, 1fr) auto; gap: 1.25rem; }
-  .nav-links { display: flex; align-items: center; gap: .25rem; }
+  .nav-links { display: flex; align-items: center; justify-content: center; gap: .25rem; }
   .nav-actions { gap: .75rem; }
   .nav-shortcut, .nav-desktop-menu { display: inline-flex; }
   .nav-dropdown { display: none; }
