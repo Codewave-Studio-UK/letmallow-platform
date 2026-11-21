@@ -4,6 +4,10 @@ import {icon} from './icons.mjs';
 export {icon} from './icons.mjs';
 export const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const logo = '<img src="/market/brand/letmallow-lockup.svg" alt="LetMallow" width="318" height="75">';
+const footerLogo = `<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="/market/brand/letmallow-lockup-dark-bg.svg">
+  ${logo}
+</picture>`;
 const alphaBadge = `<span class="alpha">${icon('flask',16)}<span>Alpha</span></span>`;
 const accountIcon = `<span class="nav-avatar-icon">${icon('user',20)}</span>`;
 
@@ -67,7 +71,7 @@ export function shell({showLanding = true} = {}) {
   return `<a class="skip" href="#content">Skip to content</a>
   <header class="site-header">
     <nav class="nav-wrap" aria-label="Main navigation">
-      <a class="brand" href="/" aria-label="LetMallow home">${logo}</a>
+      <div class="nav-identity"><a class="brand" href="/" aria-label="LetMallow home">${logo}</a>${alphaBadge}</div>
       <div class="nav-links">
         <button class="nav-link" type="button" data-nav="home">Explore</button>
         <button class="nav-link" type="button" data-nav="wanted">Wanted adverts</button>
@@ -87,7 +91,7 @@ export function shell({showLanding = true} = {}) {
     </nav>
   </header>
   <main id="content" tabindex="-1">${showLanding ? landing() : ''}</main>
-  <footer><div><a class="brand" href="/" aria-label="LetMallow home">${logo}</a><span>A Codewave Studio alpha</span><div class="foot-links"><button class="link-button" data-nav="privacy">Privacy and safety</button><a class="link-button" href="${feedback}" target="_blank" rel="noopener noreferrer">Feedback and reports ${icon('external',16)}</a></div></div></footer>
+  <footer><div><a class="brand" href="/" aria-label="LetMallow home">${footerLogo}</a><span>A Codewave Studio alpha</span><div class="foot-links"><button class="link-button" data-nav="privacy">Privacy and safety</button><a class="link-button" href="${feedback}" target="_blank" rel="noopener noreferrer">Feedback and reports ${icon('external',16)}</a></div></div></footer>
   <dialog id="panel" aria-labelledby="dialog-title"><button class="circle close" aria-label="Close dialog" data-close>${icon('close',24)}</button><div id="panel-body"></div></dialog>
   <div id="notice" role="status" aria-live="polite"></div>`;
 }
