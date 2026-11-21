@@ -1,5 +1,5 @@
 import {label, money, normalise, places} from './domain.mjs';
-import {e} from './shell.mjs';
+import {e, icon} from './shell.mjs';
 
 const width = 420;
 const height = 520;
@@ -52,8 +52,8 @@ export function createRentalMap(container) {
       <img class="map-image" src="/market/map/england-wales.svg" width="420" height="520" alt="">
       <div class="map-pins"></div>
       <div class="map-controls" aria-label="Map controls" role="group">
-        <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
-        <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
+        <button type="button" data-zoom="in" aria-label="Zoom in">${icon('plus')}</button>
+        <button type="button" data-zoom="out" aria-label="Zoom out">${icon('minus')}</button>
         <button type="button" data-zoom="reset">Reset</button>
       </div>
       <span class="map-credit">Natural Earth</span>

@@ -88,7 +88,7 @@ function resultToolbar(filter) {
 function resultCard({title, label: subtitle, description, place, action, location}) {
   const thumbnail = place
     ? placePhoto(place, '(min-width: 1440px) 360px, (min-width: 1024px) 160px, (min-width: 768px) 46vw, (min-width: 640px) 190px, 96vw', '')
-    : icon('home', 26);
+    : icon('home', 24);
   return `<article class="result-card">
     <div class="result-media"${place ? '' : ' aria-hidden="true"'}>${thumbnail}</div>
     <div class="result-card-content">
@@ -179,7 +179,7 @@ function resultPage(view) {
         <div id="map-content"><p class="empty" role="status">Loading map…</p></div>
       </section>
     </div>
-    <button type="button" class="btn primary view-toggle" data-toggle-map aria-controls="result-feed result-map">Map View</button>`;
+    <button type="button" class="btn primary view-toggle" data-toggle-map aria-controls="result-feed result-map">Map view</button>`;
 }
 
 function updateMap() {
@@ -211,7 +211,7 @@ function setResultView() {
   const focused = document.activeElement;
   feed.hidden = active && !splitView.matches;
   map.hidden = !active;
-  toggle.innerHTML = active ? icon('list', 18) + ' List View' : icon('map', 18) + ' Map View';
+  toggle.innerHTML = active ? icon('list') + ' List view' : icon('map') + ' Map view';
   feed.tabIndex = splitView.matches ? 0 : -1;
   if (splitView.matches && focused === toggle) feed.focus({preventScroll: true});
   if ((feed.hidden && feed.contains(focused)) || (map.hidden && map.contains(focused))) toggle.focus();
@@ -310,7 +310,7 @@ function details(id){
    <div class="detail-main">
      ${a.kind === 'wanted' ? '' : `<section class="property-gallery" aria-labelledby="photos-title">
        <h2 id="photos-title">Property photos</h2>
-       <div class="gallery-placeholder">${icon('image', 30)}<p>No property photos were supplied.</p></div>
+       <div class="gallery-placeholder">${icon('image', 32)}<p>No property photos were supplied.</p></div>
      </section>`}
      <section class="box stack" aria-labelledby="description-title">
        <h2 id="description-title">About this advert</h2>
@@ -442,9 +442,11 @@ document.addEventListener('submit',async ev=>{
  else{await api(f.dataset.mode,{id:f.dataset.id,shareContact:!!f.elements.shareContact?.checked,[f.dataset.mode==='answer'?'answer':'question']:data.message});go(state.view === 'messages' ? 'messages' : 'account');say('Message sent.');}}
  catch(err){const errBox=f.querySelector('.error')||panel.querySelector('.error');if(errBox)errBox.textContent=err.message;else say(err.message);button.disabled=false;}
 });
-document.addEventListener('click', event => {
+function dismissDropdownOutside(event) {
   if (dropdown.open && !dropdown.contains(event.target)) dropdown.open = false;
-});
+}
+document.addEventListener('click', dismissDropdownOutside);
+document.addEventListener('focusin', dismissDropdownOutside);
 document.addEventListener('keydown', event => {
   if (event.key !== 'Escape' || !dropdown.open) return;
   dropdown.open = false;

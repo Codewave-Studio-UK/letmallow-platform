@@ -136,7 +136,7 @@ main, footer > div { width: var(--content-width); margin-inline: auto; }
 .nav-dropdown summary::-webkit-details-marker { display: none; }
 .nav-dropdown[open] summary { color: var(--action-hover); background: var(--action-tint); }
 .nav-dropdown-panel {
-  position: absolute; z-index: 6; inset-block-start: calc(100% + .5rem); inset-inline-end: 0;
+  position: absolute; z-index: 6; inset-block-start: calc(100% + var(--navbar-padding) + 1px); inset-inline-end: 0;
   width: min(16rem, calc(100vw - 2 * var(--gutter))); max-height: 70vh; max-height: 70dvh; overflow-y: auto;
   padding: .5rem;
   background: var(--action-surface); border: 1px solid var(--action-border);
@@ -231,8 +231,8 @@ main:has(> .hero--landing) > :not(.hero) { width: var(--content-width); margin-i
 }
 .icon { flex: none; vertical-align: middle; }
 .search-field > svg { display: none; color: #546281; flex: none; pointer-events: none; }
-.search-form .search-field > .icon:last-child { display: block; }
-.search-form .search-field select { appearance: none; }
+.search-field > .icon:last-child { display: block; }
+.search-field select { appearance: none; }
 .search-field span { display: grid; flex: 1; min-width: 0; }
 .search-field b { font-size: var(--type-small); font-weight: 800; line-height: var(--space-3); }
 .search-field :is(input, select) {
@@ -315,7 +315,7 @@ body:has(dialog[open]) { overflow: hidden; }
 .form .check { display: flex; align-items: flex-start; gap: var(--space-2); }
 .check input { margin-top: .25rem; }
 .filters-form { gap: var(--space-3); }
-.filters-form .search-field { padding: 0; }
+.filters-form .search-field { display: flex; padding: 0; }
 .filters-form .search-field span { gap: var(--space-1); }
 .filters-form .link-button { justify-self: start; }
 .actions { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
@@ -365,6 +365,11 @@ body:has(.browsing) #notice { bottom: calc(var(--space-8) + var(--space-3) + env
 .rows .actions, .box:not(.stack) > .actions, .box > p + p { margin-top: var(--space-2); }
 
 .browsing { padding-bottom: calc(var(--space-8) * 1.5 + env(safe-area-inset-bottom)); }
+@media (max-width: 1023px) {
+  html:has(.browsing) {
+    scroll-padding-bottom: calc(var(--target) + var(--space-2) + env(safe-area-inset-bottom));
+  }
+}
 .result-toolbar {
   display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-1); padding-block: var(--space-2);
   margin-bottom: var(--space-2); background: white; border-bottom: 1px solid var(--line); z-index: 3;
@@ -525,7 +530,7 @@ body:has(.browsing) #notice { bottom: calc(var(--space-8) + var(--space-3) + env
   .view-toggle { display: none; }
   body:has(.browsing) #notice { bottom: max(var(--space-3), env(safe-area-inset-bottom)); }
   .advert-detail { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); }
-  .detail-contact { position: sticky; top: var(--space-4); align-self: start; }
+  .detail-contact { position: sticky; top: calc(var(--navbar-height) + var(--space-4)); align-self: start; }
 }
 
 @media (min-width: 1440px) {
@@ -542,8 +547,8 @@ body:has(.browsing) #notice { bottom: calc(var(--space-8) + var(--space-3) + env
   .nav-avatar-icon { border: 1px solid ButtonText; }
   .role-tabs button[aria-pressed=true] { text-decoration: underline; }
   .map-pin::before { forced-color-adjust: none; background: ButtonText; border-color: ButtonFace; }
-  .form label > select, .search-form .search-field select { appearance: auto; }
-  .form label:has(> select)::after, .search-form .search-field > .icon:last-child { display: none; }
+  .form label > select, .search-field select { appearance: auto; }
+  .form label:has(> select)::after, .search-field > .icon:last-child { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

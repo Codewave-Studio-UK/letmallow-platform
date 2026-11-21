@@ -16,3 +16,10 @@ App version `0.1.0-alpha.5`, following the responsive browsing sprint (`0.1.0-al
 ## Navbar
 
 Use the artboard's light colours and typography for the navbar. On desktop, the white row contains the LetMallow logo, horizontal Explore, Wanted adverts and Plans controls, Saved, Messages and the Sky-tinted account button. Below 768 CSS px, show only the logo at the left and a hamburger button at the far right. The hamburger opens a dropdown anchored to the navbar, with Saved areas, Messages, the other navigation destinations and the Alpha badge. It supports keyboard opening, Escape, outside dismissal and closes when a destination is selected. The navbar stays at the top as the page scrolls on all screen sizes. On screens with a sticky results toolbar, it sits below the navbar. The navbar has no search bar. The homepage search and results toolbar remain available. Messages uses the existing account enquiries.
+
+## Second-pass acceptance
+
+- Icon controls use the brand kit's 24-unit Lucide grid, rounded two-unit strokes and the 16, 20, 24 and 32px sizes. Both builds advertise the same browser and home-screen icons.
+- Homepage and results filter selects use the same Lucide chevron with a native indicator in forced-colour mode.
+- The mobile dropdown closes on Escape, outside click, navigation or focus leaving the dropdown. Escape from inside returns focus to the hamburger.
+- The sticky navbar leaves room for the results toolbar and the advert enquiry panel. Keep focused controls visible around the sticky header and the mobile list/map toggle.
