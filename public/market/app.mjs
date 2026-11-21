@@ -1,5 +1,5 @@
-import {places,label,brand,feedback,canonical,money,billsText,advertStates,kindNames,findPlace,interpret,match,contactQuestions,contactReplies,plans,limits} from './domain.mjs';
-import {e,icon,card,hero,landing,searchForm,dateMarkup} from './shell.mjs';
+import {places,label,brand,feedback,canonical,money,billsText,advertStates,kindNames,findPlace,match,contactQuestions,contactReplies,plans,limits} from './domain.mjs';
+import {e,icon,card,hero,landing,locationField,placePhoto,searchForm,dateMarkup} from './shell.mjs';
 import {requestMarketplace as api} from './client-api.mjs';
 const main=document.querySelector('#content'),dialog=document.querySelector('#panel'),panel=document.querySelector('#panel-body'),notice=document.querySelector('#notice');
 const mirror=document.querySelector('meta[name=rental-host]')?.content==='netlify';
@@ -7,7 +7,7 @@ const state={ads:[],adsLoading:true,loadError:false,view:'home',sessionLoading:!
 const store={read(k,alt){try{return JSON.parse(localStorage.getItem('lm-'+k))??alt;}catch{return alt;}},write(k,v){try{localStorage.setItem('lm-'+k,JSON.stringify(v));return true;}catch{return false;}}};
 let saved=store.read('places',[]);if(!Array.isArray(saved))saved=[];
 const say=s=>{notice.textContent=s;clearTimeout(say.timer);say.timer=setTimeout(()=>{notice.textContent='';},3700);};
-function modal(title,content){panel.innerHTML='<h2 id="dialog-title">'+e(title)+'</h2>'+content+'<p class="error" id="modal-error" role="alert"></p>';if(!dialog.open)dialog.showModal();}
+function modal(title,content,variant=''){dialog.className=variant;panel.innerHTML='<h2 id="dialog-title">'+e(title)+'</h2>'+content+'<p class="error" id="modal-error" role="alert"></p>';if(!dialog.open)dialog.showModal();}
 function leave(){if(dialog.open)dialog.close();}
 const heroImages = {
   wanted: { src: '/market/photos/olive-lounge.webp', width: 1280, height: 854, position: '65% 57%', mobilePosition: '67% 50%' },
@@ -18,7 +18,7 @@ const heroImages = {
 function placeHeroImage(place) {
   if (!place) return;
   return {
-    src: '/market/places/' + place.image, width: 800, height: 600,
+    src: '/market/places/' + place.image, width: 800, height: 600, variants: [480],
     position: place.id === 'anglesey' ? '50% 63%' : '50% 55%',
   };
 }
@@ -37,6 +37,9 @@ async function loadSession(){
  catch{state.sessionError=true;state.session={signedIn:false,reviewer:false,stripe:false};}
  finally{state.sessionLoading=false;}
 }
+let adsRequest;
+let sessionRequest;
+const sessionViews = ['account', 'review', 'advert', 'post', 'plans'];
 async function loadAds(){state.adsLoading=true;try{const r=await api('homes');if(!Array.isArray(r.ads))throw Error();state.ads=r.ads;state.loadError=false;}catch{state.loadError=true;}finally{state.adsLoading=false;}}
 function sessionNotice(){
  if(state.sessionLoading)return '<p class="empty" role="status">Checking your account…</p>';
@@ -44,26 +47,184 @@ function sessionNotice(){
  return '';
 }
 const urlFor=(view,filters={})=>{const p=new URLSearchParams();if(view!=='home')p.set('view',view);for(const [k,v]of Object.entries(filters))if(v&&v!=='any')p.set(k,String(v));return '/'+(p.size?'?'+p:'');};
-function go(view,filters={},push=true){leave();if(push)history.pushState({},'',urlFor(view,filters));render();if(push){window.scrollTo(0,0);main.focus({preventScroll:true});}}
+function go(view,filters={},push=true){leave();if (!browseViews.includes(view)) prefersMap = false;
+ if(push)history.pushState({},'',urlFor(view,filters));render();if(push){window.scrollTo(0,0);main.focus({preventScroll:true});}}
 function reflectSaved(){document.querySelectorAll('[data-save]').forEach(b=>{const on=saved.includes(b.dataset.save);b.setAttribute('aria-pressed',String(on));const p=places.find(x=>x.id===b.dataset.save);b.setAttribute('aria-label',(on?'Remove ':'Save ')+(p?label(p):'location')+(on?' from saved areas':''));});}
 function filters(){const p=new URLSearchParams(location.search);return {area:(p.get('area')||'').slice(0,80),kind:Object.hasOwn(kindNames,p.get('kind'))?p.get('kind'):'any',max:Math.min(100000,Math.max(0,Number(p.get('max'))||0))};}
-function setFields(f){const form=document.querySelector('#search-form');if(!form)return;form.elements.area.value=f.area;form.elements.kind.value=f.kind;if(f.max&&!Array.from(form.elements.max.options).some(o=>+o.value===f.max))form.elements.max.add(new Option('Up to '+money(f.max),String(f.max)));form.elements.max.value=f.max?String(f.max):'';}
-function providerRows(f){
- if(f.kind==='wanted')return '<div class="box"><h3>Find people looking for a room</h3><p>Choose “Rooms wanted” on SpareRoom and enter the area you want to search.</p><div class="actions">'+external('https://www.spareroom.co.uk/flatshare/search.pl','Search on SpareRoom')+'</div></div>';
- const p=findPlace(f.area);
- if(!p)return '<div class="item"><div><h3>Search on rental websites</h3><p>Enter '+(f.area?'<b>'+e(f.area)+'</b>':'your town, island or postcode')+' on the rental website. You can set your budget there.</p></div><div class="actions">'+external('https://www.spareroom.co.uk/flatshare/search.pl','Find rooms on SpareRoom')+external('https://www.openrent.co.uk/','Find homes on OpenRent')+'</div></div>';
- const types=f.kind==='room'?['rooms']:f.kind==='flat'?['flats']:f.kind==='house'?['houses']:['rooms','flats','houses'];
- return types.map(k=>'<div class="item"><div><small class="eyebrow">'+e(p[k].provider)+'</small><h3>'+({rooms:'Rooms',flats:'Flats',houses:'Houses'}[k])+' in '+e(label(p))+'</h3><p>Browse current adverts on '+e(p[k].provider)+(p.id==='anglesey'?' in and around Anglesey':'')+'.</p></div>'+external(p[k].url,'View adverts')+'</div>').join('');
+function setFields(form, filter) {
+  form.elements.area.value = filter.area;
+  form.elements.kind.value = filter.kind;
+  if (filter.max && !Array.from(form.elements.max.options).some(option => +option.value === filter.max)) {
+    form.elements.max.add(new Option('Up to ' + money(filter.max), String(filter.max)));
+  }
+  form.elements.max.value = filter.max ? String(filter.max) : '';
 }
-function adRows(ads){if(state.adsLoading)return '<div class="empty" role="status">Loading community adverts…</div>';
- if(state.loadError)return '<div class="empty" role="alert">We couldn’t load community adverts. You can still search other rental websites. <button class="link-button" data-refresh>Try again</button></div>';
- return ads.length?ads.map(a=>'<div class="item"><div><small class="eyebrow">'+icon('pin',16)+' '+e(a.nation)+' · '+e(a.area)+'</small><h3>'+e(a.title)+'</h3><p>'+(a.kind==='wanted'?'Budget of ':'')+money(a.rent)+' a month · '+e(billsText[a.bills]||'Bills to confirm')+'</p></div>'+buttons(a.id,'data-ad','View advert')+'</div>').join(''):'<div class="empty">No community adverts match your search yet. Try another rental website or post an advert.</div>';}
-function resultPage(view){
- const f=filters();if(view==='wanted')f.kind='wanted';
- if(view==='community')return heading('Community adverts','We review adverts before they appear on LetMallow.',placeHeroImage(findPlace('Bristol')))+'<div class="rows">'+adRows(state.ads)+'</div><button class="btn primary" data-nav="post">Post an advert</button>';
- const display=view==='wanted'?'Wanted adverts':f.area?'Rentals in '+f.area:'Find homes to rent';
- return heading(display,view==='wanted'?'Find people looking for a room, flat or house.':'Browse community adverts or search other rental websites.',f.kind==='wanted'?heroImages.wanted:placeHeroImage(findPlace(f.area)))+searchForm()+'<h2 class="results-head">Search other rental websites</h2><p class="muted">Set your budget on the rental website and ask the advertiser if the home is still available.</p><div class="rows">'+providerRows(f)+'</div><h2 class="results-head">Community adverts</h2><div class="rows">'+adRows(state.ads.filter(a=>match(a,f)))+'</div>';
+
+function resultFilters(view) {
+  const current = filters();
+  if (view === 'wanted') current.kind = 'wanted';
+  return current;
 }
+
+function resultToolbar(filter) {
+  const active = Number(filter.kind !== 'any') + Number(filter.max > 0);
+  return `<div class="result-toolbar">
+    <form id="result-search" role="search">
+      ${locationField('result-search')}
+      <button class="btn primary" type="submit">${icon('search', 18)} Search</button>
+    </form>
+    <button class="btn outline filter-button" type="button" data-filter="all" aria-haspopup="dialog">${icon('filter', 18)} Filters${active ? ' (' + active + ')' : ''}</button>
+    <div class="filter-pills">
+      <button class="btn outline" type="button" data-filter="kind" aria-haspopup="dialog">${e(kindNames[filter.kind])} ${icon('down', 13)}</button>
+      <button class="btn outline" type="button" data-filter="max" aria-haspopup="dialog">${filter.max ? 'Up to ' + money(filter.max) : 'Any budget'} ${icon('down', 13)}</button>
+    </div>
+  </div>`;
+}
+
+function resultCard({title, label: subtitle, description, place, action, location}) {
+  const thumbnail = place
+    ? placePhoto(place, '(min-width: 1440px) 360px, (min-width: 1024px) 160px, (min-width: 768px) 46vw, (min-width: 640px) 190px, 96vw', '')
+    : icon('home', 26);
+  return `<article class="result-card">
+    <div class="result-media"${place ? '' : ' aria-hidden="true"'}>${thumbnail}</div>
+    <div class="result-card-content">
+      <p class="eyebrow">${location ? icon('pin', 16) + ' ' : ''}${e(subtitle)}</p>
+      <h3>${e(title)}</h3>
+      <div>${description}</div>
+      <div class="actions">${action}</div>
+    </div>
+  </article>`;
+}
+
+function providerRows(filter) {
+  const place = findPlace(filter.area);
+  if (filter.kind === 'wanted') {
+    return resultCard({
+      title: 'Find people looking for a room', label: 'SpareRoom', place,
+      description: '<p>Choose “Rooms wanted” and enter the area you want to search.</p>',
+      action: external('https://www.spareroom.co.uk/flatshare/search.pl', 'Search on SpareRoom'),
+    });
+  }
+  if (!place) {
+    return resultCard({
+      title: 'Search on rental websites', label: 'External searches',
+      description: '<p>Enter ' + (filter.area ? '<strong>' + e(filter.area) + '</strong>' : 'your town, island or postcode') + ' on the rental website.</p>',
+      action: external('https://www.spareroom.co.uk/flatshare/search.pl', 'SpareRoom') + external('https://www.openrent.co.uk/', 'OpenRent'),
+    });
+  }
+  const types = filter.kind === 'any' ? ['room', 'flat', 'house'] : [filter.kind];
+  return types.map(type => {
+    const group = type + 's';
+    const source = place[group];
+    return resultCard({
+      title: kindNames[type] + ' in ' + label(place), label: source.provider, place,
+      description: '<p>Browse current adverts on ' + e(source.provider) + '.</p>',
+      action: external(source.url, 'View adverts'),
+    });
+  }).join('');
+}
+
+function matchingAdverts(view) {
+  const filter = resultFilters(view);
+  if (view === 'community' && filter.kind === 'any') {
+    return state.ads.filter(ad => match(ad, {...filter, kind: ad.kind}));
+  }
+  return state.ads.filter(ad => match(ad, filter));
+}
+
+function adRows(ads) {
+  if (state.adsLoading) return '<p class="empty" role="status">Loading community adverts…</p>';
+  if (state.loadError) return '<div class="empty" role="alert">We couldn’t load community adverts. <button class="link-button" data-refresh>Try again</button></div>';
+  if (!ads.length) return '<p class="empty">No community adverts match your search yet.</p>';
+  return ads.map(ad => resultCard({
+    title: ad.title, label: ad.area + ' · ' + (kindNames[ad.kind] || 'Advert'), location: true,
+    description: `<p class="ad-price">${ad.kind === 'wanted' ? 'Budget of ' : ''}<strong>${money(ad.rent)}</strong> a month</p><p>${e(billsText[ad.bills] || 'Bills to confirm')}</p>`,
+    action: buttons(ad.id, 'data-ad', 'View advert'),
+  })).join('');
+}
+
+const browseViews = ['search', 'community', 'wanted'];
+const splitView = matchMedia('(min-width: 1024px)');
+let prefersMap = false;
+let listScroll = 0;
+let rentalMap;
+
+function resultPage(view) {
+  const filter = resultFilters(view);
+  const community = view === 'community';
+  const title = community ? 'Community adverts' : view === 'wanted' ? 'Wanted adverts' : filter.area ? 'Rentals in ' + filter.area : 'Find homes to rent';
+  const description = community ? 'We review adverts before they appear on LetMallow.' : view === 'wanted'
+    ? 'Find people looking for a room, flat or house.' : 'Browse community adverts or search other rental websites.';
+  const image = view === 'wanted' ? heroImages.wanted : placeHeroImage(findPlace(filter.area));
+  return heading(title, description, image) + resultToolbar(filter) + `
+    <div class="result-layout">
+      <section class="result-feed" aria-label="Search results" id="result-feed" tabindex="0">
+        <div class="result-group">
+          <h2>Community adverts</h2>
+          <div class="result-grid" id="community-results">${adRows(matchingAdverts(view))}</div>
+          ${community ? '<button class="btn primary" data-nav="post">Post an advert</button>' : ''}
+        </div>
+        ${community ? '' : `<div class="result-group">
+          <h2>Search other rental websites</h2>
+          <p>Check prices, availability and details on the rental website.</p>
+          <div class="result-grid">${providerRows(filter)}</div>
+        </div>`}
+      </section>
+      <section class="result-map" id="result-map" aria-labelledby="map-heading" tabindex="-1" hidden>
+        <h2 id="map-heading">Explore the map</h2>
+        <div id="map-content"><p class="empty" role="status">Loading map…</p></div>
+      </section>
+    </div>
+    <button type="button" class="btn primary view-toggle" data-toggle-map aria-controls="result-feed result-map">Map View</button>`;
+}
+
+function updateMap() {
+  rentalMap?.update(resultFilters(state.view), matchingAdverts(state.view), state.view, {loading: state.adsLoading, failed: state.loadError});
+}
+
+async function mountMap(container) {
+  if (container.dataset.mounted) return;
+  container.dataset.mounted = 'true';
+  container.innerHTML = '<p class="empty" role="status">Loading map…</p>';
+  try {
+    const {createRentalMap} = await import('./rental-map.mjs');
+    if (!container.isConnected) return;
+    rentalMap = createRentalMap(container);
+    updateMap();
+  } catch {
+    if (!container.isConnected) return;
+    delete container.dataset.mounted;
+    container.innerHTML = '<p class="empty" role="alert">We couldn’t load the map. <button class="link-button" type="button" data-retry-map>Try again</button></p>';
+  }
+}
+
+function setResultView() {
+  const feed = main.querySelector('#result-feed');
+  if (!feed) return;
+  const map = main.querySelector('#result-map');
+  const toggle = main.querySelector('[data-toggle-map]');
+  const active = splitView.matches || prefersMap;
+  const focused = document.activeElement;
+  feed.hidden = active && !splitView.matches;
+  map.hidden = !active;
+  toggle.innerHTML = active ? icon('list', 18) + ' List View' : icon('map', 18) + ' Map View';
+  feed.tabIndex = splitView.matches ? 0 : -1;
+  if (splitView.matches && focused === toggle) feed.focus({preventScroll: true});
+  if ((feed.hidden && feed.contains(focused)) || (map.hidden && map.contains(focused))) toggle.focus();
+  if (active) void mountMap(map.querySelector('#map-content'));
+}
+splitView.addEventListener('change', setResultView);
+
+function refreshResults() {
+  const list = main.querySelector('#community-results');
+  if (!list) {
+    if (state.view === 'advert') render();
+    return;
+  }
+  list.innerHTML = adRows(matchingAdverts(state.view));
+  updateMap();
+}
+
 function safePlanState(role){const d=store.read('sim-'+role,{});const verified=state.paidPasses.filter(x=>x.expires>Date.now()/1000);return {plus:!!d.plus||verified.some(x=>x.product===role),used:Math.max(0,Number(d.used)||0),extra:Math.max(verified.some(x=>x.product==='extra')?1:0,Math.min(1,Number(d.extra)||0)),early:!!d.early,wanted:Math.max(0,Number(d.wanted)||0)};}
 function planPage(){
  const role=state.role,l=role==='landlord',s=safePlanState(role),max=limits(role,s.plus),free=l?['1 active advert','Manage your advert','Receive enquiries']:['3 replies to test adverts every 30 days','1 wanted advert for 30 days','Search and save areas'];
@@ -75,15 +236,41 @@ function reflectNav(view){document.querySelectorAll('header nav [data-nav], head
 let renderID=0;
 function render(){
  const view=new URLSearchParams(location.search).get('view')||'home';state.view=view;const id=++renderID;let html='';
- if(['search','community','wanted'].includes(view))html=resultPage(view);
+ if (browseViews.includes(view)) html = resultPage(view);
  else if(view==='areas'||view==='saved'){const all=view==='areas',arr=all?places:places.filter(p=>saved.includes(p.id));html=heading(all?'Explore all areas':'Saved areas',all?'Choose a location or enter any town or island in England and Wales.':'Find the areas you’ve saved on this device.',all?placeHeroImage(findPlace('Anglesey')):undefined)+(all?searchForm():'')+'<div class="grid area-grid">'+arr.map(card).join('')+'</div>'+(!arr.length?'<div class="empty">To save an area, select the heart next to it.</div>':'');}
  else if(view==='plans')html=planPage();
  else if(view==='privacy')html=privacy();
  else if(view==='advert')html=details(new URLSearchParams(location.search).get('id'));
  else if(view==='post')html=postPage();
  else if(view==='account'||view==='review'){html=heading(view==='review'?'Review adverts':'Your account')+(state.session.signedIn?'<p class="empty" role="status">Loading your account…</p>':signIn(view));if(state.session.signedIn)loadAccount(view,id);}
- else html=landing();
- main.innerHTML=html;reflectSaved();reflectNav(view);if(view==='search'||view==='wanted')setFields({...filters(),...(view==='wanted'?{kind:'wanted'}:{})});
+ else if (id === 1 && main.firstElementChild) html = null;
+ else html = landing();
+ rentalMap?.destroy();
+ rentalMap = undefined;
+ main.classList.toggle('browsing', browseViews.includes(view));
+ if (html !== null) main.innerHTML = html;
+ reflectSaved();
+ reflectNav(view);
+ if (browseViews.includes(view)) {
+   main.querySelector('#result-search').elements.area.value = resultFilters(view).area;
+   setResultView();
+ }
+ if ((browseViews.includes(view) || view === 'advert') && !adsRequest) {
+   adsRequest = loadAds().then(refreshResults);
+ }
+ if (!mirror && sessionViews.includes(view) && !sessionRequest) {
+   sessionRequest = loadSession().then(() => {
+     if (sessionViews.includes(state.view)) render();
+     if (!state.session.signedIn || state.view !== 'plans') return;
+     api('account').then(out => {
+       state.paidPasses = out.passes || [];
+       if (state.view === 'plans') render();
+     }).catch(() => {});
+     const checkout = new URLSearchParams(location.search).get('checkout');
+     if (checkout === 'return') say('Your test pass will appear in your account once Stripe confirms the test payment.');
+     if (checkout === 'cancel') say('You cancelled Stripe test checkout.');
+   });
+ }
 }
 function signIn(view){const pending=sessionNotice();if(pending)return pending;const path=urlFor(view);const destination=mirror?canonical+path:'/signin-with-chatgpt?return_to='+encodeURIComponent(path);
  return '<div class="box stack"><h3>'+(mirror?'Open your LetMallow account':'Sign in to your account')+'</h3><p>You can browse without an account. Sign in with ChatGPT to post or withdraw an advert, or to send and reply to enquiries.</p><div><a class="btn primary" target="_top" href="'+e(destination)+'">'+(mirror?'Continue to LetMallow':'Sign in with ChatGPT')+' '+icon('arrow',16)+'</a></div></div>';}
@@ -101,7 +288,27 @@ function details(id){
  if(state.loadError)return heading('We couldn’t load the advert')+adRows([]);
  const a=state.ads.find(x=>x.id===id);if(!a)return heading('Advert unavailable','This advert may have expired or been withdrawn.')+'<button class="btn outline" data-nav="community">Browse community adverts</button>';
  const dest=mirror?canonical+urlFor('advert',{id:a.id}):'/signin-with-chatgpt?return_to='+encodeURIComponent(urlFor('advert',{id:a.id}));
- return heading(a.title,a.area+' · '+a.nation)+'<div class="box stack advert-detail"><p class="ad-price">'+(a.kind==='wanted'?'Budget of ':'')+'<strong>'+money(a.rent)+'</strong> a month</p><p>'+e(billsText[a.bills]||'Bills to confirm')+' · Expires '+dateMarkup(a.expires)+'</p><p class="muted">'+icon('shield',16)+' Reviewed by LetMallow</p><p class="adtext">'+e(a.body)+'</p><small>Advert reference '+e(a.id)+'</small><div class="actions">'+(state.session.signedIn?buttons(a.id,'data-enquire','Send a free enquiry','primary'):'<a class="btn primary" target="_top" href="'+e(dest)+'">Sign in to enquire for free</a>')+external(feedback,'Report this advert')+'</div></div>';
+ return heading(a.title, a.area + ' · ' + a.nation) + `<div class="advert-detail">
+   <div class="detail-main">
+     ${a.kind === 'wanted' ? '' : `<section class="property-gallery" aria-labelledby="photos-title">
+       <h2 id="photos-title">Property photos</h2>
+       <div class="gallery-placeholder">${icon('image', 30)}<p>No property photos were supplied.</p></div>
+     </section>`}
+     <section class="box stack" aria-labelledby="description-title">
+       <h2 id="description-title">About this advert</h2>
+       <p class="adtext">${e(a.body)}</p>
+       <small>Advert reference ${e(a.id)} · Expires ${dateMarkup(a.expires)}</small>
+     </section>
+   </div>
+   <aside class="box stack detail-contact" aria-labelledby="enquiry-title">
+     <h2 id="enquiry-title">Send an enquiry</h2>
+     <p class="ad-price">${a.kind === 'wanted' ? 'Budget of ' : ''}<strong>${money(a.rent)}</strong> a month</p>
+     <p>${e(billsText[a.bills] || 'Bills to confirm')}</p>
+     <p class="muted">${icon('shield', 16)} Reviewed by LetMallow</p>
+     <div class="actions">${state.session.signedIn ? buttons(a.id, 'data-enquire', 'Send a free enquiry', 'primary') : `<a class="btn primary" target="_top" href="${e(dest)}">Sign in to enquire for free</a>`}
+     ${external(feedback, 'Report this advert')}</div>
+   </aside>
+ </div>`;
 }
 function openSmart(){modal('Try smart search','<p>Tell us where you want to live, what kind of home you need and your monthly budget. You can change the suggested filters before you search again.</p><form class="form" id="smart-form"><label>What are you looking for?<textarea required name="query" maxlength="200" placeholder="A room in Cardiff for up to £750 a month"></textarea></label><div class="actions"><button type="button" class="link-button" data-example>Use an example</button></div><button class="btn primary">Suggest search filters</button></form>');}
 function formAction(title,desc,op,data){
@@ -124,12 +331,49 @@ function simulation(key){
 document.addEventListener('click',async ev=>{
  const b=ev.target.closest('button,[data-nav]');if(!b)return;const d=b.dataset;
  if('close' in d){leave();return;}
+ if (d.filter) {
+   modal('Search filters', searchForm({id: 'filter-form', inDialog: true}), 'filter-dialog');
+   const form = panel.querySelector('form');
+   setFields(form, resultFilters(state.view));
+   form.elements.area.value = main.querySelector('#result-search').elements.area.value;
+   if (d.filter === 'all') dialog.querySelector('.close').focus();
+   else form.elements[d.filter].focus();
+   return;
+ }
+ if ('toggleMap' in d) {
+   if (!prefersMap) listScroll = window.scrollY;
+   prefersMap = !prefersMap;
+   setResultView();
+   if (prefersMap) main.querySelector('#result-map').scrollIntoView({block: 'start'});
+   else window.scrollTo(0, listScroll);
+   return;
+ }
+ if ('retryMap' in d) {
+   void mountMap(main.querySelector('#map-content'));
+   return;
+ }
+ if (d.mapArea) {
+   go(state.view, {...resultFilters(state.view), area: d.mapArea});
+   return;
+ }
  if(d.nav){if(d.nav==='smart'){openSmart();return;}if(d.nav==='menu'){modal('Navigation','<div class="panel-menu">'+[['home','Explore'],['areas','All areas'],['wanted','Wanted adverts'],['post','Post an advert'],['saved','Saved areas'],['plans','Plans'],['account','Your account']].map(([k,v])=>'<button data-nav="'+k+'">'+v+'</button>').join('')+'</div>');return;}go(d.nav);return;}
  if(d.place){const p=places.find(x=>x.id===d.place);if(p)go('search',{area:label(p)});return;}
  if(d.save){const on=saved.includes(d.save);saved=on?saved.filter(x=>x!==d.save):[...saved,d.save];const persisted=store.write('places',saved);if(state.view==='saved')render();else reflectSaved();say((on?'Area removed.':'Area saved.')+(persisted?'':' This change lasts until you close the page.'));return;}
  if(d.role){state.role=d.role;render();return;}if(d.sim){simulation(d.sim);return;}
  if('example' in d){panel.querySelector('textarea').value='A flat in Cardiff for up to £1,000 a month';panel.querySelector('textarea').focus();return;}
- if('refresh' in d){const loading=Promise.all([loadAds(),loadSession()]);render();await loading;render();return;}
+ if ('refresh' in d) {
+   if (browseViews.includes(state.view)) {
+     adsRequest = loadAds().then(refreshResults);
+     refreshResults();
+     return;
+   }
+   adsRequest = loadAds();
+   sessionRequest = loadSession();
+   render();
+   await Promise.all([adsRequest, sessionRequest]);
+   render();
+   return;
+ }
  if(d.ad){go('advert',{id:d.ad});return;}
  if('draft' in d){const f=document.querySelector('#ad-form');const v=fm(f);if(!v.area||!v.rent||!v.title){say('Enter a title, area and monthly rent or budget first.');return;}
  const title=v.title.trim().replace(/[.!?]+$/, '');
@@ -145,27 +389,35 @@ document.addEventListener('click',async ev=>{
  try{state.coupon??={};const requestId=state.coupon[d.pay]??=crypto.randomUUID();const data=await api('checkout',{product:d.pay,requestId});location.assign(data.url);}catch(err){say(err.message);b.disabled=false;}return;}
 });
 document.addEventListener('submit',async ev=>{
- const f=ev.target;if(!['search-form','smart-form','ad-form','msg-form'].includes(f.id))return;ev.preventDefault();
+ const f=ev.target;if(!['search-form','result-search','filter-form','smart-form','ad-form','msg-form'].includes(f.id))return;ev.preventDefault();
  const data=fm(f);
- if(f.id==='search-form'){go(data.kind==='wanted'?'wanted':'search',{area:data.area.trim(),kind:data.kind,max:data.max});return;}
- if(f.id==='smart-form'){const parsed=interpret(data.query);go('search',parsed);say(parsed.area||parsed.max||parsed.kind!=='any'?'We’ve applied the suggested filters. You can change them in the results.':'We couldn’t suggest filters. Try adding a town, home type or monthly budget.');return;}
+ if (['search-form', 'result-search', 'filter-form'].includes(f.id)) {
+   const selection = {...resultFilters(state.view), ...data, area: data.area.trim()};
+   const view = state.view === 'community' ? 'community' : selection.kind === 'wanted' ? 'wanted' : 'search';
+   go(view, selection);
+   return;
+ }
+ if (f.id === 'smart-form') {
+   const button = f.querySelector('.primary');
+   button.disabled = true;
+   try {
+     const {interpret} = await import('./smart-search.mjs');
+     if (!f.isConnected || !dialog.open) return;
+     const parsed = interpret(data.query);
+     go('search', parsed);
+     say(parsed.area || parsed.max || parsed.kind !== 'any' ? 'We’ve applied the suggested filters. You can change them in the results.' : 'We couldn’t suggest filters. Try adding a town, home type or monthly budget.');
+   } catch {
+     panel.querySelector('.error').textContent = 'Smart search could not load. Try again.';
+   } finally {
+     button.disabled = false;
+   }
+   return;
+ }
  const button=f.querySelector('button[type=submit],button.primary');button.disabled=true;
  try{if(f.id==='ad-form'){await api('submit',{...data,authority:f.elements.authority.checked});go('account');say('We’ve received your advert for review.');}
  else{await api(f.dataset.mode,{id:f.dataset.id,shareContact:!!f.elements.shareContact?.checked,[f.dataset.mode==='answer'?'answer':'question']:data.message});go('account');say('Message sent.');}}
  catch(err){const errBox=f.querySelector('.error')||panel.querySelector('.error');if(errBox)errBox.textContent=err.message;else say(err.message);button.disabled=false;}
 });
-window.addEventListener('popstate',()=>{leave();render();});
+window.addEventListener('popstate',()=>{leave();prefersMap=false;render();});
 dialog.addEventListener('click',ev=>{if(ev.target===dialog){const r=dialog.getBoundingClientRect();if(ev.clientX<r.left||ev.clientX>r.right||ev.clientY<r.top||ev.clientY>r.bottom)leave();}});
 render();
-loadAds().then(()=>{
- if(['search','community','wanted','advert'].includes(state.view))render();
-});
-loadSession().then(()=>{
- if(['account','review','advert','post','plans'].includes(state.view))render();
- if(state.session.signedIn&&state.view==='plans'){
-    api('account').then(out=>{state.paidPasses=out.passes||[];if(state.view==='plans')render();}).catch(()=>{});
-    const checkout=new URLSearchParams(location.search).get('checkout');
-    if(checkout==='return')say('Your test pass will appear in your account once Stripe confirms the test payment.');
-    if(checkout==='cancel')say('You cancelled Stripe test checkout.');
-  }
-});
