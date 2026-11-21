@@ -16,3 +16,9 @@ All 14 tests passed and both the Sites and Netlify builds succeeded. Chromium on
 - [x] Verify the navbar on both builds and in Chromium.
 
 Both builds and all 14 tests passed again. The Chromium preview confirmed the one-row desktop layout, keyboard opening and Escape dismissal, filter values in the navbar, the Saved and signed-out Messages destinations, and access to every previous menu destination. Account and enquiry service checks used synthetic records.
+
+## Responsive navigation
+
+- [x] Replace navbar search with horizontal navigation on desktop and a dropdown on smaller screens.
+- [x] Retain homepage and results search.
+- [x] Keep the navbar visible while scrolling and place the sticky results toolbar below it.

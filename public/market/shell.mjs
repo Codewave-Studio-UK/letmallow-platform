@@ -4,7 +4,19 @@ import {icon} from './icons.mjs';
 export {icon} from './icons.mjs';
 export const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const logo = '<img src="/market/brand/letmallow-lockup.svg" alt="LetMallow" width="318" height="75">';
-export const alphaBadge = `<span class="alpha">${icon('flask',16)}<span>Alpha</span></span>`;
+const alphaBadge = `<span class="alpha">${icon('flask',16)}<span>Alpha</span></span>`;
+const accountIcon = `<span class="nav-avatar-icon">${icon('user',20)}</span>`;
+
+export function navigationLinks({ includeShortcuts = false } = {}) {
+  const pages = [
+    ['home', 'Explore'], ['areas', 'All areas'], ['wanted', 'Wanted adverts'],
+    ['post', 'Post an advert'], ['plans', 'Plans'], ['account', 'Your account'],
+  ];
+  if (includeShortcuts) pages.splice(3, 0, ['saved', 'Saved areas'], ['messages', 'Messages']);
+  return `<nav class="panel-menu" aria-label="Pages">
+    ${pages.map(([view, title]) => `<button type="button" data-nav="${view}">${title}</button>`).join('')}
+  </nav><div class="menu-alpha">${alphaBadge}</div>`;
+}
 export function placePhoto(place, sizes, alt = place.alt) {
   const source = '/market/places/' + place.image;
   return `<img src="${e(source)}" srcset="${e(source.replace('.webp', '-480.webp'))} 480w, ${e(source)} 800w" sizes="${sizes}" alt="${e(alt)}" width="800" height="600" loading="lazy" decoding="async">`;
@@ -56,17 +68,21 @@ export function shell({showLanding = true} = {}) {
   <header class="site-header">
     <nav class="nav-wrap" aria-label="Main navigation">
       <a class="brand" href="/" aria-label="LetMallow home">${logo}</a>
-      <button class="nav-search" type="button" data-filter="area" aria-label="Search rentals" aria-describedby="nav-search-area nav-search-filters" aria-haspopup="dialog" aria-controls="panel">
-        ${icon('search',20)}
-        <span id="nav-search-area" class="nav-search-area">Search rentals</span>
-        <span id="nav-search-filters" class="nav-search-filters">· All properties · Any budget</span>
-      </button>
+      <div class="nav-links">
+        <button class="nav-link" type="button" data-nav="home">Explore</button>
+        <button class="nav-link" type="button" data-nav="wanted">Wanted adverts</button>
+        <button class="nav-link" type="button" data-nav="plans">Plans</button>
+      </div>
       <div class="nav-actions">
-        <button class="nav-action saved" type="button" data-nav="saved" aria-label="Saved areas">${icon('heart',20)}<span>Saved</span></button>
-        <button class="nav-action" type="button" data-nav="messages" aria-label="Messages">${icon('message',20)}<span>Messages</span></button>
-        <button class="nav-action nav-avatar" type="button" data-nav="menu" aria-label="Open account and navigation menu" aria-haspopup="dialog" aria-controls="panel">
-          <span>${icon('user',20)}</span>
+        <button class="nav-action nav-shortcut saved" type="button" data-nav="saved" aria-label="Saved areas">${icon('heart',20)}<span>Saved</span></button>
+        <button class="nav-action nav-shortcut" type="button" data-nav="messages" aria-label="Messages">${icon('message',20)}<span>Messages</span></button>
+        <button class="nav-action nav-avatar nav-desktop-menu" type="button" data-nav="menu" aria-label="Open account and navigation menu" aria-haspopup="dialog" aria-controls="panel">
+          ${accountIcon}
         </button>
+        <details class="nav-dropdown">
+          <summary class="nav-action" aria-label="Navigation menu">${icon('menu',24)}</summary>
+          <div class="nav-dropdown-panel">${navigationLinks({ includeShortcuts: true })}</div>
+        </details>
       </div>
     </nav>
   </header>

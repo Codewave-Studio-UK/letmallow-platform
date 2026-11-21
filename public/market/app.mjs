@@ -1,7 +1,10 @@
 import {places,label,brand,feedback,canonical,money,billsText,advertStates,kindNames,findPlace,match,contactQuestions,contactReplies,plans,limits} from './domain.mjs';
-import {e,icon,card,hero,landing,locationField,placePhoto,searchForm,dateMarkup,alphaBadge} from './shell.mjs';
+import {e,icon,card,hero,landing,locationField,placePhoto,searchForm,dateMarkup,navigationLinks} from './shell.mjs';
 import {requestMarketplace as api} from './client-api.mjs';
 const main=document.querySelector('#content'),dialog=document.querySelector('#panel'),panel=document.querySelector('#panel-body'),notice=document.querySelector('#notice');
+const nav = document.querySelector('.nav-wrap');
+const dropdown = nav.querySelector('.nav-dropdown');
+const desktopMenu = nav.querySelector('.nav-desktop-menu');
 const mirror=document.querySelector('meta[name=rental-host]')?.content==='netlify';
 const state={ads:[],adsLoading:true,loadError:false,view:'home',sessionLoading:!mirror,sessionError:false,session:{signedIn:false,reviewer:false,stripe:false},role:'renter',coupon:null,paidPasses:[]};
 const store={read(k,alt){try{return JSON.parse(localStorage.getItem('lm-'+k))??alt;}catch{return alt;}},write(k,v){try{localStorage.setItem('lm-'+k,JSON.stringify(v));return true;}catch{return false;}}};
@@ -234,25 +237,10 @@ function planPage(){
 }
 function privacy(){return heading('Privacy and safety','Codewave Studio operates the LetMallow alpha for residential rentals in England and Wales.')+`<div class="stack"><section class="box"><h3>Browsing and smart search</h3><p>LetMallow reads your search on your device. A standard search puts the town, home type and budget in the page URL. Avoid entering an address or personal circumstances. This browser stores your saved areas and plan choices. Open Saved areas to remove an area or reset the test plan on the Plans page.</p></section><section class="box"><h3>Adverts, enquiries and account data</h3><p>When you sign in, ChatGPT shares an account ID and email address. We use the ID to link your adverts and enquiries to your account and manage access. We use your email to check if you can review adverts. Advert text becomes public only after review. Only reviewers can see private evidence links. When replying, you can choose to share your sign-in email with that enquirer to arrange a viewing. To remove your email from their inbox, reply again and leave the box unticked. They may have already copied it. Use a town or island rather than an exact address.</p><p>We process account records to provide the service you request and carry out safety checks in the legitimate interests of users and the studio. Adverts are listed for up to 30 days from submission. Adverts disappear from public results as soon as they expire. When someone submits an advert, the service can remove adverts that expired more than 30 days ago and enquiries more than 60 days old. Withdrawing an advert removes it and its enquiries. You can delete your LetMallow records from your account.</p></section><section class="box"><h3>Providers and your choices</h3><p>ChatGPT Sites hosts your account and its current database. The Netlify site uses the same account service. Other rental websites run their own searches. Tally processes feedback or reports you choose to submit. Stripe receives a checkout request only when you use its connected test checkout. No advert text is sent to an AI provider.</p><p>For access, correction, removal, restriction, objection or questions about transfers and safeguards, contact Codewave Studio through the feedback form. You can also complain to the UK Information Commissioner. Avoid sending identity documents or bank details.</p><div class="actions">${external(feedback,'Contact the studio')}${external('https://ico.org.uk/make-a-complaint/','Complain to the ICO')}</div></section><section class="box"><h3>Report a concern</h3><p>Report suspicious adverts with their reference. The studio can remove an advert during investigation. Check that the advertiser has permission to let the home and view it before sending money. LetMallow does not collect rent, deposits or holding payments.</p>${external(feedback,'Report an advert')}</section></div>`;}
 function reflectNav(view) {
-  const nav = document.querySelector('.nav-wrap');
-  for (const button of nav.querySelectorAll('[data-nav="saved"], [data-nav="messages"]')) {
+  for (const button of nav.querySelectorAll('[data-nav]:not([data-nav="menu"])')) {
     if (button.dataset.nav === view) button.setAttribute('aria-current', 'page');
     else button.removeAttribute('aria-current');
   }
-  const { area, kind, max } = resultFilters(view);
-  nav.querySelector('.nav-search-area').textContent = area || 'Search rentals';
-  nav.querySelector('.nav-search-filters').textContent = '· ' + kindNames[kind] + ' · ' + (max ? 'Up to ' + money(max) : 'Any budget');
-}
-
-function openNavigation() {
-  const pages = [
-    ['home', 'Explore'], ['areas', 'All areas'], ['wanted', 'Wanted adverts'],
-    ['post', 'Post an advert'], ['plans', 'Plans'], ['account', 'Your account'],
-  ];
-  modal('Navigation', `<nav class="panel-menu" aria-label="Pages">
-    ${pages.map(([view, title]) => `<button type="button" data-nav="${view}">${title}</button>`).join('')}
-  </nav><div class="menu-alpha">${alphaBadge}</div>`);
-  document.querySelector('.nav-avatar').setAttribute('aria-expanded', 'true');
 }
 let renderID=0;
 function render(){
@@ -366,9 +354,7 @@ document.addEventListener('click',async ev=>{
    modal('Search filters', searchForm({id: 'filter-form', inDialog: true}), 'filter-dialog');
    const form = panel.querySelector('form');
    setFields(form, resultFilters(state.view));
-   const search = main.querySelector('#result-search, #search-form');
-   if (search) form.elements.area.value = search.elements.area.value;
-   if (d.filter === 'area') form.dataset.navSearch = '';
+   form.elements.area.value = main.querySelector('#result-search').elements.area.value;
    if (d.filter === 'all') dialog.querySelector('.close').focus();
    else form.elements[d.filter].focus();
    return;
@@ -389,7 +375,12 @@ document.addEventListener('click',async ev=>{
    go(state.view, {...resultFilters(state.view), area: d.mapArea});
    return;
  }
- if(d.nav){if(d.nav==='smart'){openSmart();return;}if(d.nav==='menu'){openNavigation();return;}go(d.nav);return;}
+ if(d.nav){
+   dropdown.open = false;
+   if(d.nav==='smart'){openSmart();return;}
+   if(d.nav==='menu'){modal('Navigation', navigationLinks());desktopMenu.setAttribute('aria-expanded','true');return;}
+   go(d.nav);return;
+ }
  if(d.place){const p=places.find(x=>x.id===d.place);if(p)go('search',{area:label(p)});return;}
  if(d.save){const on=saved.includes(d.save);saved=on?saved.filter(x=>x!==d.save):[...saved,d.save];const persisted=store.write('places',saved);if(state.view==='saved')render();else reflectSaved();say((on?'Area removed.':'Area saved.')+(persisted?'':' This change lasts until you close the page.'));return;}
  if(d.role){state.role=d.role;render();return;}if(d.sim){simulation(d.sim);return;}
@@ -426,7 +417,7 @@ document.addEventListener('submit',async ev=>{
  const data=fm(f);
  if (['search-form', 'result-search', 'filter-form'].includes(f.id)) {
    const selection = {...resultFilters(state.view), ...data, area: data.area.trim()};
-   const view = state.view === 'community' && !('navSearch' in f.dataset) ? 'community' : selection.kind === 'wanted' ? 'wanted' : 'search';
+   const view = state.view === 'community' ? 'community' : selection.kind === 'wanted' ? 'wanted' : 'search';
    go(view, selection);
    return;
  }
@@ -451,7 +442,16 @@ document.addEventListener('submit',async ev=>{
  else{await api(f.dataset.mode,{id:f.dataset.id,shareContact:!!f.elements.shareContact?.checked,[f.dataset.mode==='answer'?'answer':'question']:data.message});go(state.view === 'messages' ? 'messages' : 'account');say('Message sent.');}}
  catch(err){const errBox=f.querySelector('.error')||panel.querySelector('.error');if(errBox)errBox.textContent=err.message;else say(err.message);button.disabled=false;}
 });
-dialog.addEventListener('close', () => document.querySelector('.nav-avatar').removeAttribute('aria-expanded'));
-window.addEventListener('popstate',()=>{leave();prefersMap=false;render();});
+document.addEventListener('click', event => {
+  if (dropdown.open && !dropdown.contains(event.target)) dropdown.open = false;
+});
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape' || !dropdown.open) return;
+  dropdown.open = false;
+  if (dropdown.contains(event.target)) dropdown.querySelector('summary').focus();
+});
+matchMedia('(min-width: 768px)').addEventListener('change', () => { dropdown.open = false; });
+dialog.addEventListener('close', () => desktopMenu.removeAttribute('aria-expanded'));
+window.addEventListener('popstate',()=>{leave();dropdown.open=false;prefersMap=false;render();});
 dialog.addEventListener('click',ev=>{if(ev.target===dialog){const r=dialog.getBoundingClientRect();if(ev.clientX<r.left||ev.clientX>r.right||ev.clientY<r.top||ev.clientY>r.bottom)leave();}});
 render();
