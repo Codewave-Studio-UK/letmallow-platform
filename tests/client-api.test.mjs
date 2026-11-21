@@ -26,15 +26,15 @@ test('slow reads expire and a timed-out write asks the user to check their accou
   signal.addEventListener('abort',()=>reject(signal.reason),{once:true});
  });
  try{
-  await assert.rejects(requestMarketplace('homes',undefined,{send:stalled,timeoutMs:5}),/provider search links/);
-  await assert.rejects(requestMarketplace('submit',{synthetic:true},{send:stalled,timeoutMs:5}),/Check Your account/);
+  await assert.rejects(requestMarketplace('homes',undefined,{send:stalled,timeoutMs:5}),/search other rental websites/);
+  await assert.rejects(requestMarketplace('submit',{synthetic:true},{send:stalled,timeoutMs:5}),/Check your account/);
   assert.equal(attempts,2);
  }finally{clearTimeout(hold);}
 });
 
 test('unavailable or non-JSON services do not expose transport details',async()=>{
  for(const send of [async()=>new Response('<html>Proxy failure</html>'),async()=>Response.json(null),async()=>{throw new TypeError('internal host details');}]){
-  await assert.rejects(requestMarketplace('homes',undefined,{send}),error=>error.message.includes('marketplace service is unavailable')&&!error.message.includes('internal host'));
+  await assert.rejects(requestMarketplace('homes',undefined,{send}),error=>error.message.includes('reach LetMallow')&&!error.message.includes('internal host'));
  }
  assert.deepEqual(await requestMarketplace('homes',undefined,{send:async()=>Response.json({ads:[]})}),{ads:[]});
 });

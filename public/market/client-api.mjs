@@ -1,4 +1,4 @@
-const unavailable = 'The marketplace service is unavailable. You can still use the provider search links.';
+const unavailable = 'We couldn’t reach LetMallow. You can still search other rental websites.';
 
 // Keep browsing usable if the account service is slow. Never retry a write
 // automatically: it may have completed on the server before the response failed.
@@ -25,8 +25,8 @@ export async function requestMarketplace(action, data, {send = fetch, timeoutMs 
   } catch (error) {
     if (error.name === 'TimeoutError' || error.name === 'AbortError') {
       throw Error(data
-        ? 'The request took too long. Check Your account before trying again; your change may have been saved.'
-        : 'The service took too long to respond. Try again or use the provider search links.');
+        ? 'This took longer than expected. Your change may have been saved. Check your account before trying again.'
+        : 'LetMallow took too long to respond. Try again or search other rental websites.');
     }
     if (error instanceof TypeError) throw Error(unavailable);
     throw error;

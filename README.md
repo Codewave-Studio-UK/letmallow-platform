@@ -42,4 +42,4 @@ Membership simulations and paid test passes never grant housing access or restri
 
 ## Assets
 
-[Location photographs and source checks](docs/research/places.md) · [Interior photography](docs/research/interiors.md). DM Sans and Newsreader are self-hosted Google Fonts. Their SIL Open Font licences accompany the assets. No competitor adverts, images, logos, layout code or marketing copy are reproduced.
+[Location photographs and source checks](docs/research/places.md) · [Interior photography](docs/research/interiors.md). Nunito is self-hosted and uses the SIL Open Font License bundled with the font. No competitor adverts, images, logos, layout code or marketing copy are reproduced.

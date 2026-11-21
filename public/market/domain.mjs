@@ -9,7 +9,14 @@ export function findPlace(text){
 }
 export const money=n=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:0}).format(n);
 export const date=n=>new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',day:'2-digit',month:'2-digit',year:'numeric'}).format(n*1000);
-export const kindNames={any:'All properties',room:'Rooms',flat:'Flats',house:'Houses',wanted:'Wanted ads'};
+export const kindNames={any:'All properties',room:'Rooms',flat:'Flats',house:'Houses',wanted:'Wanted adverts'};
+export const billsText = {
+  Included: 'Bills included',
+  Excluded: 'Bills excluded',
+  'Part included': 'Some bills included',
+  'To confirm': 'Bills to confirm',
+};
+export const advertStates = { pending: 'Pending review', live: 'Published', rejected: 'Removed from publication', expired: 'Expired' };
 export const modelExamples={
  room:['a double room','a room in a shared house','flatshare','share with housemates','a bedroom in a shared flat','a room with flatmates','single room to rent','a lodger room','house share','flat share'],
  flat:['a studio flat','self contained apartment','entire flat','a flat to myself','one bedroom apartment','a maisonette','two bedroom flat','self contained studio'],
