@@ -2,15 +2,15 @@ import {plans} from '../public/market/domain.mjs';
 import {assert,DAY,readBounded} from './rules.mjs';
 export const ready=env=>/^sk_test_/.test(env.STRIPE_TEST_SECRET_KEY||'')&&/^whsec_/.test(env.STRIPE_TEST_WEBHOOK_SECRET||'');
 export async function checkout(db,user,b,env,origin,now,send=fetch){
- assert(ready(env),503,'Connect Stripe sandbox to start a test checkout. The plan simulator is available.');
- assert(Object.hasOwn(plans,b.product)&&/^[a-f0-9-]{36}$/.test(b.requestId||''),400,'Invalid test order.');
+ assert(ready(env),503,'Stripe test checkout is unavailable. You can still try the plans without entering payment details.');
+ assert(Object.hasOwn(plans,b.product)&&/^[a-f0-9-]{36}$/.test(b.requestId||''),400,'We couldn’t read this test order. Reload Plans and try again.');
  const product=plans[b.product],id=b.requestId;
  await db.run('INSERT INTO orders (id,owner,product,amount,created) VALUES (?,?,?,?,?) ON CONFLICT DO NOTHING',[id,user.id,b.product,product.amount,now]);
  const [order]=await db.rows('SELECT * FROM orders WHERE id=?',[id]);
- assert(order.owner===user.id&&order.product===b.product&&now-order.created<DAY,409,'Start a new test order.');
+ assert(order.owner===user.id&&order.product===b.product&&now-order.created<DAY,409,'This test order has changed or expired. Reload Plans to start again.');
  const params={mode:'payment','payment_method_types[0]':'card',client_reference_id:id,'metadata[order]':id,'metadata[product]':b.product,'line_items[0][price_data][currency]':'gbp','line_items[0][price_data][unit_amount]':String(product.amount),'line_items[0][price_data][product_data][name]':product.name+' · 30-day test pass','line_items[0][quantity]':'1',success_url:origin+'/?view=plans&checkout=return',cancel_url:origin+'/?view=plans&checkout=cancel'};
  const res=await send('https://api.stripe.com/v1/checkout/sessions',{method:'POST',headers:{Authorization:'Bearer '+env.STRIPE_TEST_SECRET_KEY,'Idempotency-Key':'rental-'+id,'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(params)});
- assert(res.ok,502,'Stripe could not start checkout. You can retry safely.');const out=await res.json();assert(out.livemode===false&&/^https:\/\/checkout\.stripe\.com\//.test(out.url||''),502,'Unexpected Stripe response.');return {url:out.url};
+ assert(res.ok,502,'Stripe couldn’t open test checkout. You can try again.');const out=await res.json();assert(out.livemode===false&&/^https:\/\/checkout\.stripe\.com\//.test(out.url||''),502,'We couldn’t open Stripe test checkout. Try again in a moment.');return {url:out.url};
 }
 export async function webhook(req,db,env,now){
  assert(ready(env),503,'Stripe test mode is offline.');const raw=await readBounded(req,150000);
