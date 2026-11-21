@@ -56,6 +56,8 @@
     --muted: #93a3b2;
     --primary: #8aa4ff;
     --primary-hover: #a3b8ff;
+    --alpha-ink: #a3b8ff;
+    --alpha-tint: #253450;
     --on-primary: #0e151c;
     --renter-text: #8ccbf7;
     --renter-tint: #10304a;
@@ -737,9 +739,6 @@ dialog h2 { padding-right: 38px; margin-bottom: 12px; }
 @media (max-width: 740px) {
   :root { --market-content-width: calc(100% - 32px); }
   .nav-wrap { min-height: 68px; gap: 8px; }
-  .nav-wrap nav, .nav-wrap .account, .saved span { display: none; }
-  .nav-wrap .saved { padding: 0 8px; }
-  .mobile { display: inline-flex; }
   main { padding: 16px 0 32px; }
 
   .search-form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 10px; }
@@ -777,18 +776,53 @@ dialog h2 { padding-right: 38px; margin-bottom: 12px; }
 }
 
 @media (max-width: 430px) {
-  .nav-actions .saved { display: none; }
-  .nav-actions .post { padding: 0 9px; }
-  .nav-actions .post svg { display: none; }
   .brand img { width: 148px; }
   .workspace-row { grid-template-columns: auto minmax(0, 1fr); gap: 8px 10px; }
   .workspace-row > .btn { grid-column: 2; justify-self: start; }
 }
 
-@media (max-width: 355px) {
+@media (prefers-reduced-motion: reduce) {
+  .place-image img { transition: none; }
+}
+
+.nav-identity {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+.alpha {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--alpha-tint, #e6ecfd);
+  color: var(--alpha-ink, #2249c9);
+  font: 800 13px/1.3 Nunito, system-ui, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.alpha svg { flex: none; stroke-width: 2; }
+
+@media (max-width: 900px) {
+  .nav-wrap nav, .nav-wrap .account, .nav-wrap .saved span { display: none; }
+  .nav-wrap .saved { padding: 0 8px; }
+  .nav-wrap .mobile { display: inline-flex; }
+}
+
+@media (max-width: 560px) {
+  .nav-actions .saved { display: none; }
+  .nav-actions .post { padding-inline: 9px; white-space: nowrap; }
+  .nav-actions .post svg { display: none; }
+}
+
+@media (max-width: 490px) {
   .nav-actions .post { display: none; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .place-image img { transition: none; }
+@media (max-width: 360px) {
+  .nav-identity { gap: 6px; }
+  .alpha { gap: 4px; padding-inline: 6px; }
 }
