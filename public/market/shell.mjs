@@ -19,15 +19,32 @@ export function searchForm({ compact = false } = {}) {
     <button type="submit" class="btn primary">${icon('search')} Search</button>
   </form>`;
 }
-export function landing() {
-  return `<section class="hero">
-    <img class="hero-image" src="/market/brand/bedroom.webp" width="1200" height="675" alt="A bright double bedroom with a grey headboard, green throw and a window onto the garden" fetchpriority="high">
+export function hero({title, description, image, action, landing = false}) {
+  const media = image ? `<img class="hero-image" src="${e(image.src)}" width="${image.width}" height="${image.height}" alt="${e(image.alt)}" style="--hero-position: ${e(image.position ?? '50% 50%')}; --hero-mobile-position: ${e(image.mobilePosition ?? image.position ?? '50% 50%')}" fetchpriority="high">` : '';
+  const button = action ? `<button class="hero-action" type="button" data-nav="${e(action.view)}">${e(action.label)}</button>` : '';
+  return `<section class="hero ${landing ? 'hero--landing' : 'hero--compact'}${image ? '' : ' hero--no-image'}">
+    ${media}
     <div class="hero-text">
-      <h1>Find a place that feels like home.</h1>
-      <p>Rooms, flats and houses to rent across England and Wales, from city neighbourhoods to island communities.</p>
-      <button class="smart" type="button" data-nav="smart">Try smart search</button>
+      ${landing ? '' : button}
+      <h1>${e(title)}</h1>
+      ${description ? `<p>${e(description)}</p>` : ''}
+      ${landing ? button : ''}
     </div>
-  </section>
+  </section>`;
+}
+
+export function landing() {
+  return `${hero({
+    title: 'Find a place that feels like home.',
+    description: 'Rooms, flats and houses to rent across England and Wales, from city neighbourhoods to island communities.',
+    image: {
+      src: '/market/brand/bedroom.webp', width: 1200, height: 675,
+      alt: 'A bright double bedroom with a grey headboard, green throw and a window onto the garden',
+      position: '65% 50%', mobilePosition: '65% 50%',
+    },
+    action: { label: 'Try smart search', view: 'smart' },
+    landing: true,
+  })}
   <div class="search-wrap">${searchForm()}</div>
   <section class="explore">
     <div class="section-head">
