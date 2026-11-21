@@ -2,6 +2,8 @@
 
 Date 21/11/2026
 
+App version `0.1.0-alpha.4`, following the iconography sprint (`0.1.0-alpha.3`).
+
 ## Renter stories and acceptance
 
 1. At 320–639 CSS px, I can scan one-column cards, edit my filters in a full-screen dialog and switch between list and map with one bottom control. Only the active view is visible or focusable. Filters survive view changes and browser history.

@@ -15,6 +15,10 @@ node scripts/build-netlify.mjs
 
 The second command produces `netlify-dist/`. It contains the public search, local preference model, fonts, photos and routing configuration. Serve that directory at the web root. Netlify proxies only public community adverts. Signed-in actions run on the canonical Sites origin. Only that origin trusts the platform's authenticated identity headers. Netlify's project metadata does not establish a working public deployment; see the current delivery evidence.
 
+## App versioning
+
+Use the version in [package.json](package.json) to identify the app build. During the `0.1.0` alpha, advance the numeric suffix for each sprint that delivers a new app build. Record the version in the sprint specification and its pull request.
+
 ## Hosting and operating the alpha
 
 | Setting | Value |
