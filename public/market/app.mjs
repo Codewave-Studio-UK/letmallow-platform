@@ -1,7 +1,20 @@
-import {places,label,brand,feedback,canonical,money,billsText,advertStates,kindNames,findPlace,match,contactQuestions,contactReplies,plans,limits} from './domain.mjs';
-import {e,icon,card,hero,landing,locationField,placePhoto,searchForm,dateMarkup} from './shell.mjs';
+import {places,label,feedback,canonical,money,billsText,advertStates,kindNames,findPlace,match,contactQuestions,contactReplies,plans,limits} from './domain.mjs';
+import {e,icon,card,hero,landing,locationField,placePhoto,searchForm,dateMarkup,navigationLinks} from './shell.mjs';
 import {requestMarketplace as api} from './client-api.mjs';
 const main=document.querySelector('#content'),dialog=document.querySelector('#panel'),panel=document.querySelector('#panel-body'),notice=document.querySelector('#notice');
+const header = document.querySelector('.site-header');
+const nav = header.querySelector('.nav-wrap');
+let stickyToolbar;
+const stickySizes = new ResizeObserver(entries => {
+  for (const {target} of entries) {
+    if (!target.isConnected) continue;
+    const name = target === header ? '--navbar-height' : '--result-toolbar-height';
+    document.documentElement.style.setProperty(name, target.getBoundingClientRect().height + 'px');
+  }
+});
+stickySizes.observe(header);
+const dropdown = nav.querySelector('.nav-dropdown');
+const desktopMenu = nav.querySelector('.nav-desktop-menu');
 const mirror=document.querySelector('meta[name=rental-host]')?.content==='netlify';
 const state={ads:[],adsLoading:true,loadError:false,view:'home',sessionLoading:!mirror,sessionError:false,session:{signedIn:false,reviewer:false,stripe:false},role:'renter',coupon:null,paidPasses:[]};
 const store={read(k,alt){try{return JSON.parse(localStorage.getItem('lm-'+k))??alt;}catch{return alt;}},write(k,v){try{localStorage.setItem('lm-'+k,JSON.stringify(v));return true;}catch{return false;}}};
@@ -39,7 +52,8 @@ async function loadSession(){
 }
 let adsRequest;
 let sessionRequest;
-const sessionViews = ['account', 'review', 'advert', 'post', 'plans'];
+const sessionViews = ['account', 'messages', 'review', 'advert', 'post', 'plans'];
+const accountTitles = { account: 'Your account', messages: 'Messages', review: 'Review adverts' };
 async function loadAds(){state.adsLoading=true;try{const r=await api('homes');if(!Array.isArray(r.ads))throw Error();state.ads=r.ads;state.loadError=false;}catch{state.loadError=true;}finally{state.adsLoading=false;}}
 function sessionNotice(){
  if(state.sessionLoading)return '<p class="empty" role="status">Checking your account…</p>';
@@ -71,12 +85,12 @@ function resultToolbar(filter) {
   return `<div class="result-toolbar">
     <form id="result-search" role="search">
       ${locationField('result-search')}
-      <button class="btn primary" type="submit">${icon('search', 18)} Search</button>
+      <button class="btn primary" type="submit">${icon('search', 20)} Search</button>
     </form>
-    <button class="btn outline filter-button" type="button" data-filter="all" aria-haspopup="dialog">${icon('filter', 18)} Filters${active ? ' (' + active + ')' : ''}</button>
+    <button class="btn outline filter-button${active ? ' is-filtered' : ''}" type="button" data-filter="all" aria-haspopup="dialog">${icon('filter', 20)} Filters${active ? ' (' + active + ')' : ''}</button>
     <div class="filter-pills">
-      <button class="btn outline" type="button" data-filter="kind" aria-haspopup="dialog">${e(kindNames[filter.kind])} ${icon('down', 13)}</button>
-      <button class="btn outline" type="button" data-filter="max" aria-haspopup="dialog">${filter.max ? 'Up to ' + money(filter.max) : 'Any budget'} ${icon('down', 13)}</button>
+      <button class="btn outline${filter.kind !== 'any' ? ' is-filtered' : ''}" type="button" data-filter="kind" aria-haspopup="dialog">${e(kindNames[filter.kind])} ${icon('down', 16)}</button>
+      <button class="btn outline${filter.max ? ' is-filtered' : ''}" type="button" data-filter="max" aria-haspopup="dialog">${filter.max ? 'Up to ' + money(filter.max) : 'Any budget'} ${icon('down', 16)}</button>
     </div>
   </div>`;
 }
@@ -84,7 +98,7 @@ function resultToolbar(filter) {
 function resultCard({title, label: subtitle, description, place, action, location}) {
   const thumbnail = place
     ? placePhoto(place, '(min-width: 1440px) 360px, (min-width: 1024px) 160px, (min-width: 768px) 46vw, (min-width: 640px) 190px, 96vw', '')
-    : icon('home', 26);
+    : icon('home', 24);
   return `<article class="result-card">
     <div class="result-media"${place ? '' : ' aria-hidden="true"'}>${thumbnail}</div>
     <div class="result-card-content">
@@ -138,7 +152,9 @@ function adRows(ads) {
   if (!ads.length) return '<p class="empty">No community adverts match your search yet.</p>';
   return ads.map(ad => resultCard({
     title: ad.title, label: ad.area + ' · ' + (kindNames[ad.kind] || 'Advert'), location: true,
-    description: `<p class="ad-price">${ad.kind === 'wanted' ? 'Budget of ' : ''}<strong>${money(ad.rent)}</strong> a month</p><p>${e(billsText[ad.bills] || 'Bills to confirm')}</p>`,
+    description: `<p class="ad-price">${ad.kind === 'wanted' ? 'Budget of ' : ''}<strong>${money(ad.rent)}</strong> a month</p>
+      <p>${e(billsText[ad.bills] || 'Bills to confirm')}</p>
+      <p class="muted">${icon('shield', 16)} Reviewed by LetMallow</p>`,
     action: buttons(ad.id, 'data-ad', 'View advert'),
   })).join('');
 }
@@ -156,7 +172,9 @@ function resultPage(view) {
   const description = community ? 'We review adverts before they appear on LetMallow.' : view === 'wanted'
     ? 'Find people looking for a room, flat or house.' : 'Browse community adverts or search other rental websites.';
   const image = view === 'wanted' ? heroImages.wanted : placeHeroImage(findPlace(filter.area));
-  return heading(title, description, image) + resultToolbar(filter) + `
+  return heading(title, description, image) + `
+  <div class="result-workspace">
+    ${resultToolbar(filter)}
     <div class="result-layout">
       <section class="result-feed" aria-label="Search results" id="result-feed" tabindex="0">
         <div class="result-group">
@@ -175,7 +193,8 @@ function resultPage(view) {
         <div id="map-content"><p class="empty" role="status">Loading map…</p></div>
       </section>
     </div>
-    <button type="button" class="btn primary view-toggle" data-toggle-map aria-controls="result-feed result-map">Map View</button>`;
+  </div>
+    <button type="button" class="btn primary view-toggle" data-toggle-map aria-controls="result-feed result-map">Map view</button>`;
 }
 
 function updateMap() {
@@ -207,7 +226,7 @@ function setResultView() {
   const focused = document.activeElement;
   feed.hidden = active && !splitView.matches;
   map.hidden = !active;
-  toggle.innerHTML = active ? icon('list', 18) + ' List View' : icon('map', 18) + ' Map View';
+  toggle.innerHTML = active ? icon('list') + ' List view' : icon('map') + ' Map view';
   feed.tabIndex = splitView.matches ? 0 : -1;
   if (splitView.matches && focused === toggle) feed.focus({preventScroll: true});
   if ((feed.hidden && feed.contains(focused)) || (map.hidden && map.contains(focused))) toggle.focus();
@@ -231,8 +250,13 @@ function planPage(){
  const plus=l?['5 active adverts','See how many replies each advert gets','Try an extra advert separately']:['30 replies to test adverts every 30 days','Reply to test adverts before they open to everyone','3 wanted adverts for 30 days'];
  return heading('Membership plans','Posting and sending enquiries are free during alpha. Try the proposed 30-day plans below.',heroImages.plans)+'<div class="role-tabs" aria-label="Choose renter or landlord"><button data-role="renter" aria-pressed="'+!l+'">Renter</button><button data-role="landlord" aria-pressed="'+l+'">Landlord</button></div><div class="split">'+[['Free',0,free,false],[plans[role].name,plans[role].amount/100,plus,true]].map(([t,n,items,isPlus])=>'<article class="box plan"><h3>'+t+'</h3><b>'+money(n)+' <small class="muted">'+(n?'for 30 days in test mode':'')+'</small></b><ul>'+items.map(x=>'<li>'+x+'</li>').join('')+'</ul><div class="actions"><button class="btn '+(isPlus?'primary':'outline')+'" data-sim="'+(isPlus?'plus':'free')+'">Try '+(isPlus?t:'the free plan')+'</button></div></article>').join('')+'</div><h2 class="results-head">Try a plan</h2><div class="box stack"><b>'+e(s.plus?plans[role].name:'Free')+' test plan</b><p>'+ (l?'Adverts posted: '+s.used+' of '+(max.ads+s.extra)+'.':s.used+' of '+max.responses+' test replies used. Wanted adverts: '+s.wanted+' of '+max.wanted+'.')+'</p><div class="actions">'+(l?'<button class="btn outline small" data-sim="use">Post test advert</button><button class="btn outline small" data-sim="extra">Try one extra advert (£3)</button>':'<button class="btn outline small" data-sim="use">Reply to a test advert</button><button class="btn outline small" data-sim="early">Try early access</button><button class="btn outline small" data-sim="wanted">Post test wanted advert</button>')+'<button class="link-button" data-sim="reset">Reset</button></div>'+(l&&s.plus?'<p>'+s.used+(s.used===1?' advert':' adverts')+' posted in this test.</p>':'')+'</div><div class="box stack payment-box"><h3>Stripe test checkout</h3><p>'+(mirror?'Open LetMallow to see whether Stripe test checkout is available.':state.sessionLoading?'Checking test checkout availability…':state.sessionError?'We couldn’t check whether Stripe test checkout is available. Reload the page to try again.':state.session.stripe?'Use Stripe test card details. You won’t be charged.':'Stripe test checkout is unavailable. You can still try the plans above without entering payment details.')+'</p>'+(mirror?'<p><a class="btn outline" target="_top" href="'+canonical+'/?view=plans">Continue to LetMallow</a></p>':state.session.stripe?'<div class="actions"><button class="btn outline" data-pay="'+role+'">Open Stripe test checkout</button>'+(l?'<button class="btn outline" data-pay="extra">Test extra advert</button>':'')+'</div>':'')+'</div>';
 }
-function privacy(){return heading('Privacy and safety','Codewave Studio operates the LetMallow alpha for residential rentals in England and Wales.')+`<div class="stack"><section class="box"><h3>Browsing and smart search</h3><p>LetMallow reads your search on your device. A standard search puts the town, home type and budget in the page URL. Avoid entering an address or personal circumstances. This browser stores your saved areas and plan choices. Open Saved areas to remove an area or reset the test plan on the Plans page.</p></section><section class="box"><h3>Adverts, enquiries and account data</h3><p>When you sign in, ChatGPT shares an account ID and email address. We use the ID to link your adverts and enquiries to your account and manage access. We use your email to check if you can review adverts. Advert text becomes public only after review. Only reviewers can see private evidence links. When replying, you can choose to share your sign-in email with that enquirer to arrange a viewing. To remove your email from their inbox, reply again and leave the box unticked. They may have already copied it. Use a town or island rather than an exact address.</p><p>We process account records to provide the service you request and carry out safety checks in the legitimate interests of users and the studio. Adverts are listed for up to 30 days from submission. Adverts disappear from public results as soon as they expire. When someone submits an advert, the service can remove adverts that expired more than 30 days ago and enquiries more than 60 days old. Withdrawing an advert removes it and its enquiries. You can delete your LetMallow records from your account.</p></section><section class="box"><h3>Providers and your choices</h3><p>ChatGPT Sites hosts your account and its current database. The Netlify site uses the same account service. Other rental websites run their own searches. Tally processes feedback or reports you choose to submit. Stripe receives a checkout request only when you use its connected test checkout. No advert text is sent to an AI provider.</p><p>For access, correction, removal, restriction, objection or questions about transfers and safeguards, contact Codewave Studio through the feedback form. You can also complain to the UK Information Commissioner. Avoid sending identity documents or bank details.</p><div class="actions">${external(feedback,'Contact the studio')}${external('https://ico.org.uk/make-a-complaint/','Complain to the ICO')}</div></section><section class="box"><h3>Report a concern</h3><p>Report suspicious adverts with their reference. The studio can remove an advert during investigation. Check that the advertiser has permission to let the home and view it before sending money. LetMallow does not collect rent, deposits or holding payments.</p>${external(feedback,'Report an advert')}</section></div>`;}
-function reflectNav(view){document.querySelectorAll('header nav [data-nav], header .saved').forEach(b=>{const on=b.dataset.nav===view||(b.dataset.nav==='home'&&['areas','search','community'].includes(view));b.classList.toggle('current',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});}
+function privacy(){return heading('Privacy and safety','Codewave Studio operates the LetMallow alpha for residential rentals in England and Wales.')+`<div class="stack"><section class="box"><h3>Browsing and smart search</h3><p>LetMallow reads your search on your device. A standard search puts the town, home type and budget in the page URL. Avoid entering an address or personal circumstances. This browser stores your saved areas and plan choices. Open Saved areas to remove an area or reset the test plan on the Plans page.</p></section><section class="box"><h3>Adverts, enquiries and account data</h3><p>When you sign in, ChatGPT shares an account ID and email address. We use the ID to link your adverts and enquiries to your account and manage access. We use your email to check if you can review adverts. Advert text becomes public only after review. Only reviewers can see private evidence links. When replying, you can choose to share your sign-in email with the person who contacted you to arrange a viewing. To remove your email from their inbox, reply again and leave the box unticked. They may have already copied it. Use a town or island rather than an exact address.</p><p>We process account records to provide the service you request and carry out safety checks in the legitimate interests of users and the studio. Adverts are listed for up to 30 days from submission. Adverts disappear from public results as soon as they expire. When someone submits an advert, the service can remove adverts that expired more than 30 days ago and enquiries more than 60 days old. Withdrawing an advert removes it and its enquiries. You can delete your LetMallow records from your account.</p></section><section class="box"><h3>Providers and your choices</h3><p>ChatGPT Sites hosts your account and its current database. The Netlify site uses the same account service. Other rental websites run their own searches. Tally processes feedback or reports you choose to submit. Stripe receives a checkout request only when you use its connected test checkout. No advert text is sent to an AI provider.</p><p>For access, correction, removal, restriction, objection or questions about transfers and safeguards, contact Codewave Studio through the feedback form. You can also complain to the UK Information Commissioner. Avoid sending identity documents or bank details.</p><div class="actions">${external(feedback,'Contact the studio')}${external('https://ico.org.uk/make-a-complaint/','Complain to the ICO')}</div></section><section class="box"><h3>Report a concern</h3><p>Report suspicious adverts with their reference. The studio can remove an advert during investigation. Check that the advertiser has permission to let the home and view it before sending money. LetMallow does not collect rent, deposits or holding payments.</p>${external(feedback,'Report an advert')}</section></div>`;}
+function reflectNav(view) {
+  for (const button of nav.querySelectorAll('[data-nav]:not([data-nav="menu"])')) {
+    if (button.dataset.nav === view) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  }
+}
 let renderID=0;
 function render(){
  const view=new URLSearchParams(location.search).get('view')||'home';state.view=view;const id=++renderID;let html='';
@@ -242,13 +266,20 @@ function render(){
  else if(view==='privacy')html=privacy();
  else if(view==='advert')html=details(new URLSearchParams(location.search).get('id'));
  else if(view==='post')html=postPage();
- else if(view==='account'||view==='review'){html=heading(view==='review'?'Review adverts':'Your account')+(state.session.signedIn?'<p class="empty" role="status">Loading your account…</p>':signIn(view));if(state.session.signedIn)loadAccount(view,id);}
+ else if (Object.hasOwn(accountTitles, view)) {
+   html = heading(accountTitles[view]) + (state.session.signedIn
+     ? '<p class="empty" role="status">Loading your account…</p>' : signIn(view));
+   if (state.session.signedIn) loadAccount(view, id);
+ }
  else if (id === 1 && main.firstElementChild) html = null;
  else html = landing();
  rentalMap?.destroy();
  rentalMap = undefined;
  main.classList.toggle('browsing', browseViews.includes(view));
+ if (stickyToolbar) stickySizes.unobserve(stickyToolbar);
  if (html !== null) main.innerHTML = html;
+ stickyToolbar = main.querySelector('.result-toolbar');
+ if (stickyToolbar) stickySizes.observe(stickyToolbar);
  reflectSaved();
  reflectNav(view);
  if (browseViews.includes(view)) {
@@ -281,8 +312,13 @@ async function loadAccount(view,id){
  if(view==='review'){
  main.innerHTML=heading('Review adverts','Check who can advertise the home, where it is and the rent and terms. For homes in Wales, check registration and licensing or any exemption that applies. Record the evidence before approving an advert.')+'<div class="rows">'+(out.ads.map(a=>'<div class="box stack"><h3>'+e(a.title)+'</h3><p>'+e(a.area)+' · '+e(a.nation)+' · '+money(a.rent)+' a month · '+e(billsText[a.bills]||'Bills to confirm')+'</p><p class="adtext">'+e(a.body)+'</p><p class="muted">Advert reference '+e(a.id)+' · '+e(advertStates[a.status]||'Status unavailable')+'</p>'+(a.proof?external(a.proof,'Private evidence link'):'<p>Ask for proof that the advertiser can let the home if you haven’t checked it yet.</p>')+'<div class="actions">'+(a.status==='live'?buttons(a.id,'data-unpublish','Unpublish'):buttons(a.id,'data-approve','Review for approval','primary')+buttons(a.id,'data-reject','Reject'))+'</div></div>').join('')||'<div class="empty">There are no adverts in the review queue.</div>')+'</div>';return;}
  const message=(m,canReply)=>'<div class="box stack"><h3>'+e(m.title)+'</h3><p>'+e(m.question)+'</p><b>'+e(m.answer||'Awaiting a reply')+'</b>'+(m.contact?(canReply?'<small>You shared your email with the person who sent this enquiry.</small>':'<p>Contact the advertiser at <a href="mailto:'+e(encodeURIComponent(m.contact))+'">'+e(m.contact)+'</a>.</p>'):'')+(canReply?buttons(m.id,'data-answer','Reply'):'')+'</div>';
- main.innerHTML=heading('Your account','Manage your adverts and see the enquiries you’ve sent and received.')+'<div class="actions"><button class="btn primary" data-nav="post">Post an advert</button>'+(out.reviewer?'<button class="btn outline" data-nav="review">Review adverts</button>':'')+'<a class="link-button" target="_top" href="/signout-with-chatgpt?return_to=%2F">'+icon('logOut',16)+' Sign out</a></div><h2 class="results-head">'+icon('home')+' Your adverts</h2><div class="rows">'+(out.ads.map(a=>'<div class="item"><div><small class="badge">'+e(advertStates[a.expires<=Date.now()/1000?'expired':a.status]||'Status unavailable')+'</small><h3>'+e(a.title)+'</h3><p>'+icon('calendar',16)+' Expires '+dateMarkup(a.expires)+' · '+e(a.area)+'</p></div>'+buttons(a.id,'data-withdraw','Withdraw')+'</div>').join('')||'<p class="empty">Adverts you submit will appear here.</p>')+'</div><h2 class="results-head">'+icon('message')+' Received enquiries</h2><div class="rows">'+(out.inbox.map(m=>message(m,true)).join('')||'<p class="empty">No enquiries yet.</p>')+'</div><h2 class="results-head">'+icon('send')+' Sent enquiries</h2><div class="rows">'+(out.sent.map(m=>message(m,false)).join('')||'<p class="empty">You haven’t sent any enquiries yet.</p>')+'</div>'+(out.passes.length?'<h2 class="results-head">'+icon('ticket')+' Stripe test passes</h2>'+out.passes.map(p=>'<p>'+e(plans[p.product]?.name)+' · Expires '+dateMarkup(p.expires)+'</p>').join(''):'')+'<button class="link-button" data-erase>Delete my LetMallow records</button>';
- }catch(err){if(id===renderID)main.innerHTML=heading(view==='review'?'Review adverts':'Your account')+'<div class="empty" role="alert">'+e(err.message)+' <button class="link-button" data-refresh>Try again</button></div>';}}
+ const messages = '<h2 class="results-head">'+icon('message')+' Received enquiries</h2><div class="rows">'+(out.inbox.map(m=>message(m,true)).join('')||'<p class="empty">No enquiries yet.</p>')+'</div><h2 class="results-head">'+icon('send')+' Sent enquiries</h2><div class="rows">'+(out.sent.map(m=>message(m,false)).join('')||'<p class="empty">You haven’t sent any enquiries yet.</p>')+'</div>';
+ if (view === 'messages') {
+   main.innerHTML = heading('Messages', 'Read and reply to enquiries about adverts.') + messages;
+   return;
+ }
+ main.innerHTML=heading('Your account','Manage your adverts and see the enquiries you’ve sent and received.')+'<div class="actions"><button class="btn primary" data-nav="post">Post an advert</button>'+(out.reviewer?'<button class="btn outline" data-nav="review">Review adverts</button>':'')+'<a class="link-button" target="_top" href="/signout-with-chatgpt?return_to=%2F">'+icon('logOut',16)+' Sign out</a></div><h2 class="results-head">'+icon('home')+' Your adverts</h2><div class="rows">'+(out.ads.map(a=>'<div class="item"><div><small class="badge">'+e(advertStates[a.expires<=Date.now()/1000?'expired':a.status]||'Status unavailable')+'</small><h3>'+e(a.title)+'</h3><p>'+icon('calendar',16)+' Expires '+dateMarkup(a.expires)+' · '+e(a.area)+'</p></div>'+buttons(a.id,'data-withdraw','Withdraw')+'</div>').join('')||'<p class="empty">Adverts you submit will appear here.</p>')+'</div>'+messages+(out.passes.length?'<h2 class="results-head">'+icon('ticket')+' Stripe test passes</h2>'+out.passes.map(p=>'<p>'+e(plans[p.product]?.name)+' · Expires '+dateMarkup(p.expires)+'</p>').join(''):'')+'<button class="link-button danger" data-erase>Delete my LetMallow records</button>';
+ }catch(err){if(id===renderID)main.innerHTML=heading(accountTitles[view])+'<div class="empty" role="alert">'+e(err.message)+' <button class="link-button" data-refresh>Try again</button></div>';}}
 function details(id){
  if(state.adsLoading)return heading('Opening advert')+'<p class="empty" role="status">Loading the advert…</p>';
  if(state.loadError)return heading('We couldn’t load the advert')+adRows([]);
@@ -292,7 +328,7 @@ function details(id){
    <div class="detail-main">
      ${a.kind === 'wanted' ? '' : `<section class="property-gallery" aria-labelledby="photos-title">
        <h2 id="photos-title">Property photos</h2>
-       <div class="gallery-placeholder">${icon('image', 30)}<p>No property photos were supplied.</p></div>
+       <div class="gallery-placeholder">${icon('image', 32)}<p>No property photos were supplied.</p></div>
      </section>`}
      <section class="box stack" aria-labelledby="description-title">
        <h2 id="description-title">About this advert</h2>
@@ -301,7 +337,7 @@ function details(id){
      </section>
    </div>
    <aside class="box stack detail-contact" aria-labelledby="enquiry-title">
-     <h2 id="enquiry-title">Send an enquiry</h2>
+     <h2 id="enquiry-title">${a.kind === 'wanted' ? 'Rental budget' : 'Rent and bills'}</h2>
      <p class="ad-price">${a.kind === 'wanted' ? 'Budget of ' : ''}<strong>${money(a.rent)}</strong> a month</p>
      <p>${e(billsText[a.bills] || 'Bills to confirm')}</p>
      <p class="muted">${icon('shield', 16)} Reviewed by LetMallow</p>
@@ -312,7 +348,8 @@ function details(id){
 }
 function openSmart(){modal('Try smart search','<p>Tell us where you want to live, what kind of home you need and your monthly budget. You can change the suggested filters before you search again.</p><form class="form" id="smart-form"><label>What are you looking for?<textarea required name="query" maxlength="200" placeholder="A room in Cardiff for up to £750 a month"></textarea></label><div class="actions"><button type="button" class="link-button" data-example>Use an example</button></div><button class="btn primary">Suggest search filters</button></form>');}
 function formAction(title,desc,op,data){
- modal(title,'<p>'+e(desc)+'</p><div class="actions dialog-actions"><button class="btn outline" data-close>Cancel</button><button class="btn primary" id="confirm-action">Confirm</button></div>');
+ const destructive = op === 'erase' || op === 'withdraw' || (op === 'moderate' && data.decision !== 'approve');
+ modal(title,'<p>'+e(desc)+'</p><div class="actions dialog-actions"><button class="btn outline" data-close>Cancel</button><button class="btn '+(destructive?'danger':'primary')+'" id="confirm-action">Confirm</button></div>');
  document.querySelector('#confirm-action').onclick=async ev=>{ev.currentTarget.disabled=true;try{await api(op,data);leave();await loadAds();go(op==='moderate'?'review':'account');say('Your change is saved.');}catch(err){panel.querySelector('.error').textContent=err.message;document.querySelector('#confirm-action').disabled=false;}};
 }
 function simulation(key){
@@ -344,8 +381,14 @@ document.addEventListener('click',async ev=>{
    if (!prefersMap) listScroll = window.scrollY;
    prefersMap = !prefersMap;
    setResultView();
-   if (prefersMap) main.querySelector('#result-map').scrollIntoView({block: 'start'});
-   else window.scrollTo(0, listScroll);
+   if (prefersMap) {
+     const map = main.querySelector('#result-map');
+     map.scrollIntoView({block: 'start'});
+     map.focus({preventScroll: true});
+   } else {
+     window.scrollTo(0, listScroll);
+     main.querySelector('#result-feed').focus({preventScroll: true});
+   }
    return;
  }
  if ('retryMap' in d) {
@@ -356,7 +399,12 @@ document.addEventListener('click',async ev=>{
    go(state.view, {...resultFilters(state.view), area: d.mapArea});
    return;
  }
- if(d.nav){if(d.nav==='smart'){openSmart();return;}if(d.nav==='menu'){modal('Navigation','<div class="panel-menu">'+[['home','Explore'],['areas','All areas'],['wanted','Wanted adverts'],['post','Post an advert'],['saved','Saved areas'],['plans','Plans'],['account','Your account']].map(([k,v])=>'<button data-nav="'+k+'">'+v+'</button>').join('')+'</div>');return;}go(d.nav);return;}
+ if(d.nav){
+   dropdown.open = false;
+   if(d.nav==='smart'){openSmart();return;}
+   if(d.nav==='menu'){modal('Navigation', navigationLinks());desktopMenu.setAttribute('aria-expanded','true');return;}
+   go(d.nav);return;
+ }
  if(d.place){const p=places.find(x=>x.id===d.place);if(p)go('search',{area:label(p)});return;}
  if(d.save){const on=saved.includes(d.save);saved=on?saved.filter(x=>x!==d.save):[...saved,d.save];const persisted=store.write('places',saved);if(state.view==='saved')render();else reflectSaved();say((on?'Area removed.':'Area saved.')+(persisted?'':' This change lasts until you close the page.'));return;}
  if(d.role){state.role=d.role;render();return;}if(d.sim){simulation(d.sim);return;}
@@ -415,9 +463,21 @@ document.addEventListener('submit',async ev=>{
  }
  const button=f.querySelector('button[type=submit],button.primary');button.disabled=true;
  try{if(f.id==='ad-form'){await api('submit',{...data,authority:f.elements.authority.checked});go('account');say('We’ve received your advert for review.');}
- else{await api(f.dataset.mode,{id:f.dataset.id,shareContact:!!f.elements.shareContact?.checked,[f.dataset.mode==='answer'?'answer':'question']:data.message});go('account');say('Message sent.');}}
+ else{await api(f.dataset.mode,{id:f.dataset.id,shareContact:!!f.elements.shareContact?.checked,[f.dataset.mode==='answer'?'answer':'question']:data.message});go(state.view === 'messages' ? 'messages' : 'account');say('Message sent.');}}
  catch(err){const errBox=f.querySelector('.error')||panel.querySelector('.error');if(errBox)errBox.textContent=err.message;else say(err.message);button.disabled=false;}
 });
-window.addEventListener('popstate',()=>{leave();prefersMap=false;render();});
+function dismissDropdownOutside(event) {
+  if (dropdown.open && !dropdown.contains(event.target)) dropdown.open = false;
+}
+document.addEventListener('click', dismissDropdownOutside);
+document.addEventListener('focusin', dismissDropdownOutside);
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape' || !dropdown.open) return;
+  dropdown.open = false;
+  if (dropdown.contains(event.target)) dropdown.querySelector('summary').focus();
+});
+matchMedia('(min-width: 768px)').addEventListener('change', () => { dropdown.open = false; });
+dialog.addEventListener('close', () => desktopMenu.removeAttribute('aria-expanded'));
+window.addEventListener('popstate',()=>{leave();dropdown.open=false;prefersMap=false;render();});
 dialog.addEventListener('click',ev=>{if(ev.target===dialog){const r=dialog.getBoundingClientRect();if(ev.clientX<r.left||ev.clientX>r.right||ev.clientY<r.top||ev.clientY>r.bottom)leave();}});
 render();

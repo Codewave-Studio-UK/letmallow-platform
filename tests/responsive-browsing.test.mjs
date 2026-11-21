@@ -21,6 +21,8 @@ test('area map groups public adverts at supported place centres only', () => {
 test('landing markup includes real WebP variants and avoids eager map assets', async () => {
   const html = landing();
   assert.match(html, /bedroom-640\.webp 640w, \/market\/brand\/bedroom-840\.webp 840w/);
+  const mobileSource = html.match(/<source media="\(width < 640px\)" srcset="([^"]+)"/)?.[1];
+  assert.equal(mobileSource, '/market/brand/bedroom-640.webp 640w, /market/brand/bedroom-840.webp 840w');
   assert.match(html, /class="hero-image"[^>]+fetchpriority="high"/);
   assert.match(html, /london-480\.webp[^>]+loading="lazy"/);
   assert.doesNotMatch(html, /england-wales\.svg|rental-map\.mjs/);
@@ -30,5 +32,7 @@ test('landing markup includes real WebP variants and avoids eager map assets', a
 
   const mobileHero = await stat(new URL('../public/market/brand/bedroom-640.webp', import.meta.url));
   const fullHero = await stat(new URL('../public/market/brand/bedroom.webp', import.meta.url));
+  const highDensityHero = await stat(new URL('../public/market/brand/bedroom-840.webp', import.meta.url));
   assert.ok(mobileHero.size < fullHero.size / 2);
+  assert.ok(highDensityHero.size < fullHero.size / 2);
 });
