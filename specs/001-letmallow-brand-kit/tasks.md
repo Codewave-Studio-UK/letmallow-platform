@@ -9,6 +9,8 @@
 - [x] T006 Apply the artboard patterns to results, advert details and the account workspace.
 - [x] T007 Exercise empty, populated and error states plus the existing actions in both themes.
 
+- [x] T008 Apply the type scale and voice rules to navigation, search, plans, forms, account pages and system messages.
+
 ## Verification
 
 - The Sites and Netlify builds, lint and all eight service tests passed.
@@ -16,3 +18,4 @@
 - Account and advert replies in the browser used synthetic fixtures. Live sign-in, payments and marketplace suppliers were outside this sprint.
 - The supplied SVG wordmark was outlined in Nunito ExtraBold and its canvas was widened so the last letter fits.
 - The artboard follow-up checked the same 16 host, theme and viewport combinations. It covered selected search filters, advert facts and layout, provider fallback and retry, wanted adverts, the account sidebar, enquiry submission, advert review and the advertiser form. The browser used synthetic data and intercepted marketplace API requests for these checks.
+- The copy and typography follow-up checked 22 synthetic page states across the two source trees, including advert details, waiting and empty states, the submission form and the review queue. The bundled Nunito digits have equal widths at all four brand weights.

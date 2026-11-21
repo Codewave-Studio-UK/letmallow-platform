@@ -1,4 +1,4 @@
-import {places,label,feedback,money} from './domain.mjs';
+import {places,label,feedback,money,date} from './domain.mjs';
 import {icon} from './icons.mjs';
 
 export {icon} from './icons.mjs';
@@ -14,11 +14,16 @@ export function searchForm({ compact = false } = {}) {
   return `<form class="search-form${compact ? ' search-form--compact' : ''}" id="search-form" aria-label="Rental search">
     <label class="search-field location">${icon('pin')}<span><b>Location</b><input id="search-area" name="area" maxlength="80" placeholder="Town, city or island" list="towns" autocomplete="off"></span></label>
     <datalist id="towns">${places.map(p => '<option value="' + e(label(p)) + '">').join('')}<option value="Isles of Scilly"><option value="Swansea"></datalist>
-    <label class="search-field search-filter">${icon('home')}<span><b>Property type</b><select name="kind"><option value="any">All properties</option><option value="room">Rooms</option><option value="flat">Flats</option><option value="house">Houses</option><option value="wanted">Wanted ads</option></select></span>${icon('down',16)}</label>
+    <label class="search-field search-filter">${icon('home')}<span><b>Property type</b><select name="kind"><option value="any">All properties</option><option value="room">Rooms</option><option value="flat">Flats</option><option value="house">Houses</option><option value="wanted">Wanted adverts</option></select></span>${icon('down',16)}</label>
     <label class="search-field search-filter">${icon('wallet')}<span><b>Monthly budget</b><select name="max"><option value="">Any budget</option>${budgets.map(n => '<option value="' + n + '">Up to ' + money(n) + '</option>').join('')}</select></span>${icon('down',16)}</label>
     <button type="submit" class="btn primary">${icon('search')} Search</button>
   </form>`;
 }
+export function dateMarkup(seconds) {
+  const timestamp = new Date(seconds * 1000).toISOString();
+  return `<time datetime="${timestamp}">${date(seconds)}</time>`;
+}
+
 export function hero({title, description, image, action, landing = false}) {
   const media = image ? `<img class="hero-image" src="${e(image.src)}" width="${image.width}" height="${image.height}" alt="${e(image.alt)}" style="--hero-position: ${e(image.position ?? '50% 50%')}; --hero-mobile-position: ${e(image.mobilePosition ?? image.position ?? '50% 50%')}" fetchpriority="high">` : '';
   const button = action ? `<button class="hero-action" type="button" data-nav="${e(action.view)}">${e(action.label)}</button>` : '';
@@ -48,16 +53,16 @@ export function landing() {
   <div class="search-wrap">${searchForm()}</div>
   <section class="explore">
     <div class="section-head">
-      <div><h2>Explore by location</h2><p>Go straight to live rental searches in each area.</p></div>
+      <div><h2>Explore by location</h2><p>Open rental searches for a town, city or island.</p></div>
       <button class="link-button" data-nav="areas">View all areas ${icon('arrow',16)}</button>
     </div>
     <div class="grid">${['london','cardiff','manchester','bristol'].map(id=>card(places.find(p=>p.id===id))).join('')}</div>
   </section>
   <section class="community">
     <div class="tile-icon">${icon('home',24)}</div>
-    <div><h2>Community adverts</h2><p>Browse adverts submitted directly by landlords and renters.</p></div>
+    <div><h2>Community adverts</h2><p>Find homes to rent and adverts from people looking for a home.</p></div>
     <button class="btn outline" data-nav="community">Browse adverts ${icon('arrow',16)}</button>
   </section>`;
 }
 
-export function shell(){return `<a class="skip" href="#content">Skip to content</a><header><div class="nav-wrap"><div class="nav-identity"><a class="brand" href="/" aria-label="LetMallow home">${logo}</a><span class="alpha">${icon('flask',16)}<span>Alpha</span></span></div><nav aria-label="Main navigation"><button data-nav="home" class="nav-link current">Explore</button><button data-nav="wanted" class="nav-link">Wanted ads</button><button data-nav="plans" class="nav-link">Plans</button></nav><div class="nav-actions"><button class="saved" data-nav="saved" aria-label="Saved areas">${icon('heart',20)}<span>Saved</span></button><button class="btn primary post" data-nav="post">${icon('plus',16)} Post an advert</button><button class="circle account" data-nav="account" aria-label="Your account">${icon('user',20)}</button><button class="circle mobile" data-nav="menu" aria-label="Open navigation">${icon('menu',24)}</button></div></div></header><main id="content" tabindex="-1">${landing()}</main><footer><div><a class="brand" href="/" aria-label="LetMallow home">${logo}</a><span>A Codewave Studio alpha</span><div class="foot-links"><button data-nav="privacy">Privacy &amp; safety</button><a href="${feedback}" target="_blank" rel="noopener noreferrer">Feedback &amp; reports ${icon('external',16)}</a></div></div></footer><dialog id="panel" aria-labelledby="dialog-title"><button class="circle close" aria-label="Close dialog" data-close>${icon('close',20)}</button><div id="panel-body"></div></dialog><div id="notice" role="status" aria-live="polite"></div>`;}
+export function shell(){return `<a class="skip" href="#content">Skip to content</a><header><div class="nav-wrap"><div class="nav-identity"><a class="brand" href="/" aria-label="LetMallow home">${logo}</a><span class="alpha">${icon('flask',16)}<span>Alpha</span></span></div><nav aria-label="Main navigation"><button data-nav="home" class="nav-link current">Explore</button><button data-nav="wanted" class="nav-link">Wanted adverts</button><button data-nav="plans" class="nav-link">Plans</button></nav><div class="nav-actions"><button class="saved" data-nav="saved" aria-label="Saved areas">${icon('heart',20)}<span>Saved</span></button><button class="btn primary post" data-nav="post">${icon('plus',16)} Post an advert</button><button class="circle account" data-nav="account" aria-label="Your account">${icon('user',20)}</button><button class="circle mobile" data-nav="menu" aria-label="Open navigation">${icon('menu',24)}</button></div></div></header><main id="content" tabindex="-1">${landing()}</main><footer><div><a class="brand" href="/" aria-label="LetMallow home">${logo}</a><span>A Codewave Studio alpha</span><div class="foot-links"><button data-nav="privacy">Privacy and safety</button><a href="${feedback}" target="_blank" rel="noopener noreferrer">Feedback and reports ${icon('external',16)}</a></div></div></footer><dialog id="panel" aria-labelledby="dialog-title"><button class="circle close" aria-label="Close dialog" data-close>${icon('close',20)}</button><div id="panel-body"></div></dialog><div id="notice" role="status" aria-live="polite"></div>`;}

@@ -28,8 +28,11 @@ The [product mock-ups](https://claude.ai/artifact/MPR5UqG6jxKJ9W43LGPm2r#artboar
 
 - FR-006 · Use the shared hero across page headings. Allow a separate photo and desktop and mobile crops for each hero. Use the dark gradient, Nunito type and compact spacing for pages such as accounts and advert details where a photo would add little or imply an unverified property image.
 
+- FR-007 · Apply the kit’s Nunito type scale, tabular figures and sentence case to all LetMallow interface text. Use British English, lead with known rental facts, label test features clearly and give users a practical next step when something goes wrong. The uppercase Alpha badge follows the kit’s label treatment.
+
 ## Success criteria
 
 - Both host builds use the same logo, theme and interface. All referenced brand assets load from the site itself.
 - At a 320px viewport there is no horizontal scroll, and primary actions and navigation are reachable.
+- Buttons, forms, adverts, account pages and system messages follow the copy rules. Existing adverts and enquiry text retain the wording their authors submitted.
 - Search, saved areas, plans and the advert form work in browser smoke checks. The existing service suite passes.
