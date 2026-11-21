@@ -47,6 +47,10 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 export function createRentalMap(container) {
   container.innerHTML = `
     <p class="map-intro" id="map-help">Select an area to see matching adverts or browse rental searches. Pins show approximate areas.</p>
+    <div class="map-area-field" hidden>
+      <label for="map-area">Map area</label>
+      <select id="map-area"><option value="">Choose an area</option></select>
+    </div>
     <div class="map-stage" tabindex="0" role="region" aria-label="Map of England and Wales" aria-describedby="map-help map-keys">
       <span class="visually-hidden" id="map-keys">Use the arrow keys to move, plus and minus to zoom, or Home to reset.</span>
       <img class="map-image" src="/market/map/england-wales.svg" width="420" height="520" alt="">
@@ -61,6 +65,7 @@ export function createRentalMap(container) {
     <p class="empty" id="map-empty" hidden>No mapped areas match this search. Check the list for adverts and rental websites.</p>
     <div class="map-info" id="map-info" hidden></div>
     <span class="visually-hidden" role="status" id="map-status"></span>`;
+  const areaSelect = container.querySelector('#map-area');
   const stage = container.querySelector('.map-stage');
   const image = container.querySelector('.map-image');
   image.addEventListener('error', () => {
@@ -120,6 +125,7 @@ export function createRentalMap(container) {
 
   function showArea(id, announce = false) {
     selected = id;
+    areaSelect.value = id || '';
     for (const pin of pins.children) pin.setAttribute('aria-pressed', String(pin.dataset.pin === selected));
     const group = groups.find(entry => entry.place.id === id);
     info.hidden = !group;
@@ -142,16 +148,25 @@ export function createRentalMap(container) {
     community = view === 'community';
     const ids = groups.map(group => group.place.id).join();
     if (ids !== previous) {
+      areaSelect.length = 1;
+      for (const {place} of groups) areaSelect.add(new Option(label(place), place.id));
       pins.innerHTML = groups.map(({place}) => `<button class="map-pin" type="button" data-pin="${place.id}" data-label="${e(label(place))}" aria-label="${e(label(place))}" aria-pressed="false">${e(label(place))}</button>`).join('');
     }
     empty.hidden = groups.length > 0;
+    areaSelect.parentElement.hidden = groups.length < 2;
     const area = mapArea(filter.area);
-    showArea(selected || area);
+    showArea(groups.some(({place}) => place.id === selected) ? selected : area);
     draw();
   }
 
   const observer = new ResizeObserver(draw);
   observer.observe(stage);
+  areaSelect.addEventListener('change', () => {
+    const id = areaSelect.value;
+    if (id) [centreX, centreY] = point(id);
+    showArea(id, true);
+    draw();
+  });
   stage.addEventListener('click', event => {
     const button = event.target.closest('button');
     if (button?.dataset.zoom) zoomMap(button.dataset.zoom);

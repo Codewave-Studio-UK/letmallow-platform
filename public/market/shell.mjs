@@ -41,9 +41,17 @@ export function dateMarkup(seconds) {
 }
 
 export function hero({title, description, image, action, landing = false}) {
-  const variants = image?.variants ?? [640];
-  const sourceSet = image ? `srcset="${variants.map(width => e(image.src.replace('.webp', '-' + width + '.webp')) + ' ' + width + 'w').join(', ')}, ${e(image.src)} ${image.width}w" sizes="${landing ? '100vw' : '(min-width: 1440px) 1392px, 95vw'}"` : '';
-  const media = image ? `<img class="hero-image" src="${e(image.src)}" ${sourceSet} width="${image.width}" height="${image.height}" alt="${e(image.alt)}" decoding="async" style="--hero-position: ${e(image.position ?? '50% 50%')}; --hero-mobile-position: ${e(image.mobilePosition ?? image.position ?? '50% 50%')}" fetchpriority="high">` : '';
+  let media = '';
+  if (image) {
+    const src = e(image.src);
+    const variants = image.variants ?? [640];
+    const mobile = variants.map(width => e(image.src.replace('.webp', '-' + width + '.webp')) + ' ' + width + 'w').join(', ');
+    const sizes = landing ? '100vw' : '(min-width: 1440px) 1392px, 95vw';
+    media = `<picture>
+      <source media="(width < 640px)" srcset="${mobile}" sizes="${sizes}">
+      <img class="hero-image" src="${src}" srcset="${mobile}, ${src} ${image.width}w" sizes="${sizes}" width="${image.width}" height="${image.height}" alt="${e(image.alt)}" decoding="async" style="--hero-position: ${e(image.position ?? '50% 50%')}; --hero-mobile-position: ${e(image.mobilePosition ?? image.position ?? '50% 50%')}" fetchpriority="high">
+    </picture>`;
+  }
   const button = action ? `<button class="hero-action ${landing ? 'btn primary' : 'link-button'}" type="button" data-nav="${e(action.view)}">${e(action.label)}</button>` : '';
   return `<section class="hero ${landing ? 'hero--landing' : 'hero--compact'}${image ? '' : ' hero--no-image'}">
     ${media}

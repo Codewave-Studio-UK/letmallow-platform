@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { version } from '../package.json';
 import { appIconLinks } from '../public/market/icons.mjs';
 
 export const metadata: Metadata = {
@@ -6,6 +7,7 @@ export const metadata: Metadata = {
   description: 'Search residential rentals across England and Wales, including islands. Advertise a home or post a wanted advert.',
   robots: { index: false, follow: false },
   referrer: 'no-referrer',
+  other: { 'letmallow-version': version },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

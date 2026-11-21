@@ -2,7 +2,17 @@ import {places,label,feedback,canonical,money,billsText,advertStates,kindNames,f
 import {e,icon,card,hero,landing,locationField,placePhoto,searchForm,dateMarkup,navigationLinks} from './shell.mjs';
 import {requestMarketplace as api} from './client-api.mjs';
 const main=document.querySelector('#content'),dialog=document.querySelector('#panel'),panel=document.querySelector('#panel-body'),notice=document.querySelector('#notice');
-const nav = document.querySelector('.nav-wrap');
+const header = document.querySelector('.site-header');
+const nav = header.querySelector('.nav-wrap');
+let stickyToolbar;
+const stickySizes = new ResizeObserver(entries => {
+  for (const {target} of entries) {
+    if (!target.isConnected) continue;
+    const name = target === header ? '--navbar-height' : '--result-toolbar-height';
+    document.documentElement.style.setProperty(name, target.getBoundingClientRect().height + 'px');
+  }
+});
+stickySizes.observe(header);
 const dropdown = nav.querySelector('.nav-dropdown');
 const desktopMenu = nav.querySelector('.nav-desktop-menu');
 const mirror=document.querySelector('meta[name=rental-host]')?.content==='netlify';
@@ -162,7 +172,9 @@ function resultPage(view) {
   const description = community ? 'We review adverts before they appear on LetMallow.' : view === 'wanted'
     ? 'Find people looking for a room, flat or house.' : 'Browse community adverts or search other rental websites.';
   const image = view === 'wanted' ? heroImages.wanted : placeHeroImage(findPlace(filter.area));
-  return heading(title, description, image) + resultToolbar(filter) + `
+  return heading(title, description, image) + `
+  <div class="result-workspace">
+    ${resultToolbar(filter)}
     <div class="result-layout">
       <section class="result-feed" aria-label="Search results" id="result-feed" tabindex="0">
         <div class="result-group">
@@ -181,6 +193,7 @@ function resultPage(view) {
         <div id="map-content"><p class="empty" role="status">Loading map…</p></div>
       </section>
     </div>
+  </div>
     <button type="button" class="btn primary view-toggle" data-toggle-map aria-controls="result-feed result-map">Map view</button>`;
 }
 
@@ -263,7 +276,10 @@ function render(){
  rentalMap?.destroy();
  rentalMap = undefined;
  main.classList.toggle('browsing', browseViews.includes(view));
+ if (stickyToolbar) stickySizes.unobserve(stickyToolbar);
  if (html !== null) main.innerHTML = html;
+ stickyToolbar = main.querySelector('.result-toolbar');
+ if (stickyToolbar) stickySizes.observe(stickyToolbar);
  reflectSaved();
  reflectNav(view);
  if (browseViews.includes(view)) {
@@ -365,8 +381,14 @@ document.addEventListener('click',async ev=>{
    if (!prefersMap) listScroll = window.scrollY;
    prefersMap = !prefersMap;
    setResultView();
-   if (prefersMap) main.querySelector('#result-map').scrollIntoView({block: 'start'});
-   else window.scrollTo(0, listScroll);
+   if (prefersMap) {
+     const map = main.querySelector('#result-map');
+     map.scrollIntoView({block: 'start'});
+     map.focus({preventScroll: true});
+   } else {
+     window.scrollTo(0, listScroll);
+     main.querySelector('#result-feed').focus({preventScroll: true});
+   }
    return;
  }
  if ('retryMap' in d) {
