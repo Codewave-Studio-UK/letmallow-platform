@@ -4,6 +4,7 @@ import {icon} from './icons.mjs';
 export {icon} from './icons.mjs';
 export const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const logo = '<img src="/market/brand/letmallow-lockup.svg" alt="LetMallow" width="318" height="75">';
+export const alphaBadge = `<span class="alpha">${icon('flask',16)}<span>Alpha</span></span>`;
 export function placePhoto(place, sizes, alt = place.alt) {
   const source = '/market/places/' + place.image;
   return `<img src="${e(source)}" srcset="${e(source.replace('.webp', '-480.webp'))} 480w, ${e(source)} 800w" sizes="${sizes}" alt="${e(alt)}" width="800" height="600" loading="lazy" decoding="async">`;
@@ -50,4 +51,27 @@ export function landing(){return `${hero({
     action: { label: 'Try smart search', view: 'smart' },
     landing: true,
   })}<div class="search-wrap">${searchForm()}</div><section class="explore"><div class="section-head"><div><h2>Explore by location</h2><p>Open rental searches for a town, city or island.</p></div><button class="link-button" data-nav="areas">View all areas ${icon('arrow',16)}</button></div><div class="grid">${['london','cardiff','manchester','bristol'].map(id=>card(places.find(p=>p.id===id))).join('')}</div></section><section class="community"><div class="tile-icon">${icon('home',24)}</div><div><h2>Community adverts</h2><p>Find homes to rent and adverts from people looking for a home.</p></div><button class="btn outline" data-nav="community">Browse adverts ${icon('arrow',16)}</button></section>`;}
-export function shell({showLanding = true} = {}){return `<a class="skip" href="#content">Skip to content</a><header><div class="nav-wrap"><div class="nav-identity"><a class="brand" href="/" aria-label="LetMallow home">${logo}</a><span class="alpha">${icon('flask',16)}<span>Alpha</span></span></div><nav aria-label="Main navigation"><button data-nav="home" class="nav-link current">Explore</button><button data-nav="wanted" class="nav-link">Wanted adverts</button><button data-nav="plans" class="nav-link">Plans</button></nav><div class="nav-actions"><button class="saved" data-nav="saved" aria-label="Saved areas">${icon('heart',24)}<span>Saved</span></button><button class="btn primary post" data-nav="post">${icon('plus',16)} Post an advert</button><button class="circle account" data-nav="account" aria-label="Your account">${icon('user',24)}</button><button class="circle mobile" data-nav="menu" aria-label="Open navigation">${icon('menu',24)}</button></div></div></header><main id="content" tabindex="-1">${showLanding ? landing() : ''}</main><footer><div><a class="brand" href="/" aria-label="LetMallow home">${logo}</a><span>A Codewave Studio alpha</span><div class="foot-links"><button class="link-button" data-nav="privacy">Privacy and safety</button><a class="link-button" href="${feedback}" target="_blank" rel="noopener noreferrer">Feedback and reports ${icon('external',16)}</a></div></div></footer><dialog id="panel" aria-labelledby="dialog-title"><button class="circle close" aria-label="Close dialog" data-close>${icon('close',24)}</button><div id="panel-body"></div></dialog><div id="notice" role="status" aria-live="polite"></div>`;}
+export function shell({showLanding = true} = {}) {
+  return `<a class="skip" href="#content">Skip to content</a>
+  <header class="site-header">
+    <nav class="nav-wrap" aria-label="Main navigation">
+      <a class="brand" href="/" aria-label="LetMallow home">${logo}</a>
+      <button class="nav-search" type="button" data-filter="area" aria-label="Search rentals" aria-describedby="nav-search-area nav-search-filters" aria-haspopup="dialog" aria-controls="panel">
+        ${icon('search',20)}
+        <span id="nav-search-area" class="nav-search-area">Search rentals</span>
+        <span id="nav-search-filters" class="nav-search-filters">· All properties · Any budget</span>
+      </button>
+      <div class="nav-actions">
+        <button class="nav-action saved" type="button" data-nav="saved" aria-label="Saved areas">${icon('heart',20)}<span>Saved</span></button>
+        <button class="nav-action" type="button" data-nav="messages" aria-label="Messages">${icon('message',20)}<span>Messages</span></button>
+        <button class="nav-action nav-avatar" type="button" data-nav="menu" aria-label="Open account and navigation menu" aria-haspopup="dialog" aria-controls="panel">
+          <span>${icon('user',20)}</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+  <main id="content" tabindex="-1">${showLanding ? landing() : ''}</main>
+  <footer><div><a class="brand" href="/" aria-label="LetMallow home">${logo}</a><span>A Codewave Studio alpha</span><div class="foot-links"><button class="link-button" data-nav="privacy">Privacy and safety</button><a class="link-button" href="${feedback}" target="_blank" rel="noopener noreferrer">Feedback and reports ${icon('external',16)}</a></div></div></footer>
+  <dialog id="panel" aria-labelledby="dialog-title"><button class="circle close" aria-label="Close dialog" data-close>${icon('close',24)}</button><div id="panel-body"></div></dialog>
+  <div id="notice" role="status" aria-live="polite"></div>`;
+}

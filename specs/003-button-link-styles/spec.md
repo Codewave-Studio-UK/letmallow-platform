@@ -12,3 +12,7 @@ App version `0.1.0-alpha.5`, following the responsive browsing sprint (`0.1.0-al
 4. Account, enquiries, provider links, plans, dialogs and footer destinations retain their existing behaviour. Both host builds use the same control styles.
 
 [LetMallow brand artboard](https://claude.ai/artifact/MPR5UqG6jxKJ9W43LGPm2r#artboard-3d8175ac14d9)
+
+## Navbar
+
+Use the artboard's light renter search-results navbar across the site. On desktop, show one white row with the LetMallow logo, a flexible grey search summary, Saved, Messages and a Sky-tinted account control. At narrow widths, the search summary moves to a full-width second row and the action icons keep their accessible names and touch targets. Search opens the existing filters, and the summary reflects the current location, property type and budget. Messages uses the existing account enquiries. The account control opens the navigation menu, which retains the previous destinations and the Alpha badge.
